@@ -106,20 +106,57 @@ function animatePrice(el, targetStr) {
   requestAnimationFrame(update);
 }
 
-// Contact form
+// Contact form → Google Sheets via Apps Script
+// Replace this URL after deploying your Apps Script (see google-apps-script.js)
+const GOOGLE_SHEET_URL = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
+
 const form = document.getElementById('contactForm');
 const formSuccess = document.getElementById('formSuccess');
 
-form.addEventListener('submit', (e) => {
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = form.querySelector('button[type="submit"]');
   btn.textContent = 'Sending…';
   btn.disabled = true;
 
-  setTimeout(() => {
-    form.style.display = 'none';
-    formSuccess.style.display = 'block';
-  }, 1200);
+  const data = {
+    firstName: form.querySelector('input[placeholder="John"]').value,
+    lastName:  form.querySelector('input[placeholder="Smith"]').value,
+    email:     form.querySelector('input[type="email"]').value,
+    business:  form.querySelector('input[placeholder="Smith & Co."]').value,
+    industry:  form.querySelector('select').value,
+    challenge: form.querySelector('textarea').value,
+    timestamp: new Date().toISOString(),
+  };
+
+  // Submit to Google Sheets (if configured)
+  if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL !== 'PASTE_YOUR_APPS_SCRIPT_URL_HERE') {
+    try {
+      await fetch(GOOGLE_SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+    } catch (err) {
+      console.warn('Sheets submission error:', err);
+    }
+  }
+
+  // Also submit to Netlify Forms
+  try {
+    const netlifyData = new FormData(form);
+    await fetch('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(netlifyData).toString(),
+    });
+  } catch (err) {
+    console.warn('Netlify Forms error:', err);
+  }
+
+  form.style.display = 'none';
+  formSuccess.style.display = 'block';
 });
 
 // Scale bars animation
