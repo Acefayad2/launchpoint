@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 48" fill="none" role="img" aria-label="LaunchPoint">
+  <defs>
+    <linearGradient id="mark-grad-w" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="55%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="arrow-grad-w" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="48" height="48" rx="12" fill="url(#mark-grad-w)"/>
+  <circle cx="14" cy="34" r="3.5" fill="url(#arrow-grad-w)"/>
+  <line x1="15.8" y1="32.2" x2="31" y2="17" stroke="url(#arrow-grad-w)" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M24 13 L35.5 13 L35.5 24.5" stroke="url(#arrow-grad-w)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <line x1="9" y1="34" x2="14" y2="34" stroke="url(#arrow-grad-w)" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="14" y1="39" x2="14" y2="34" stroke="url(#arrow-grad-w)" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <text x="60" y="31" font-family="'Syne','Inter',-apple-system,sans-serif" font-size="22" font-weight="800" letter-spacing="-0.5" fill="#ffffff">LaunchPoint</text>
+</svg>

@@ -203,35 +203,10 @@ body {
   flex-shrink: 0;
 }
 
-.logo-mark {
-  width: 32px;
-  height: 32px;
-  background: var(--gradient);
-  border-radius: 8px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo-mark::after {
-  content: '';
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  border: 2.5px solid #fff;
-  border-radius: 3px;
-  border-right-color: transparent;
-  border-bottom-color: transparent;
-  transform: rotate(45deg);
-}
-
-.logo-text {
-  font-family: 'Syne', sans-serif;
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.02em;
+.logo-svg {
+  height: 36px;
+  width: auto;
+  display: block;
 }
 
 .nav-links {
