@@ -213,7 +213,6 @@ body {
   display: flex;
   list-style: none;
   gap: 4px;
-  margin-left: auto;
 }
 
 .nav-links a {
@@ -230,6 +229,9 @@ body {
 
 .nav-ctas { display: flex; align-items: center; gap: 8px; }
 
+/* Push logo to the far right on desktop */
+.nav-inner .logo { margin-left: auto; }
+
 .nav-toggle {
   display: none;
   flex-direction: column;
@@ -238,7 +240,6 @@ body {
   border: none;
   cursor: pointer;
   padding: 8px;
-  margin-left: auto;
 }
 
 .nav-toggle span {
@@ -1971,7 +1972,8 @@ body {
 
 @media (max-width: 768px) {
   .nav-links, .nav-ctas { display: none; }
-  .nav-toggle { display: flex; }
+  .nav-toggle { display: flex; margin-left: auto; }
+  .nav-inner .logo { margin-left: 0; }
 
   .hero { padding: 100px 0 60px; }
   .hero-actions { flex-direction: column; }
