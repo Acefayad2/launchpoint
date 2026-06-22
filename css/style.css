@@ -189,7 +189,7 @@ body {
   max-width: 1180px;
   margin: 0 auto;
   padding: 0 24px;
-  height: 72px;
+  height: 80px;
   display: flex;
   align-items: center;
   gap: 40px;
@@ -204,7 +204,7 @@ body {
 }
 
 .logo-svg {
-  height: 36px;
+  height: 68px;
   width: auto;
   display: block;
 }
@@ -1984,7 +1984,7 @@ body {
   .nav-links, .nav-ctas { display: none; }
   .nav-toggle { display: flex; margin-left: auto; }
   .nav-inner .logo { margin-left: 0; }
-  .logo-svg { height: 30px; }
+  .logo-svg { height: 44px; }
 
   /* Global section spacing */
   .solutions, .results, .comparison, .pricing, .contact,
