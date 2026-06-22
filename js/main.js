@@ -108,7 +108,7 @@ function animatePrice(el, targetStr) {
 
 // Contact form → Google Sheets via Apps Script
 // Replace this URL after deploying your Apps Script (see google-apps-script.js)
-const GOOGLE_SHEET_URL = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
+const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyvhxQ-PIVGv-pa2CE_JNlg2-Gezf7lPR9PZp0IXbGzzCYjOhl6kkfX-fWIH21ie1iy/exec';
 
 const form = document.getElementById('contactForm');
 const formSuccess = document.getElementById('formSuccess');
