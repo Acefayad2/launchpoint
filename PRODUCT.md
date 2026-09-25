@@ -10,7 +10,7 @@ Local SMB owners — barbershop owners, restaurant operators, salon managers, gy
 
 ## Product Purpose
 
-LaunchPoint is a done-for-you digital growth agency for local businesses. The site exists to convert cold prospects into booked audit calls. Success = a business owner lands on the page and within 90 seconds thinks "these people get my problem, and they can fix it." Services: custom websites, SEO, Google Ads, social media management, professional photography, Google Review NFC cards, sales funnels, marketing automation.
+LaunchPoint builds digital products and manages marketing for businesses. Local service businesses are the initial campaign hypothesis; founders and teams needing custom software are a separate audience. The site exists to convert cold prospects into booked audit calls. Success = a business owner lands on the page and within 90 seconds thinks "these people get my problem, and they can fix it." Services: custom software, websites, web and mobile applications, marketing, and social media management. Existing digital growth packages also include supporting services listed on the website. Custom software and application work requires a separate project scope.
 
 ## Brand Personality
 
@@ -29,7 +29,7 @@ Not flashy or hype — earned authority. The feeling of talking to someone who's
 ## Design Principles
 
 1. **Show the outcome, not the feature** — Lead with what happens to their business, not what tools you use
-2. **Earned authority** — Every claim has a number behind it. No vague promises.
+2. **Earned authority** — Publish metrics and testimonials only with verified evidence and client permission. Describe concrete deliverables where proof is not yet available.
 3. **Respect their time** — These are busy owners. Every section earns its place or gets cut.
 4. **Practice what we preach** — If we sell premium websites, ours better be the best one they've seen today.
 5. **One clear next step** — Every scroll position has a visible path to booking an audit.
