@@ -11,10 +11,25 @@
   <link rel="icon" type="image/svg+xml" href="assets/logo-mark.svg">
   <link rel="stylesheet" href="css/dashboard.css">
 </head>
-<body class="dashboard-page">
+<body class="dashboard-page" data-auth-state="loading">
   <a class="skip-link" href="#workspace">Skip to workspace</a>
 
-  <header class="studio-header">
+  <section class="auth-gate" id="auth-gate" aria-labelledby="auth-title">
+    <div class="auth-card">
+      <a class="auth-brand" href="/">LaunchPoint <span>Studio</span></a>
+      <p class="section-kicker">Secure workspace</p>
+      <h1 id="auth-title">Sign in to the studio.</h1>
+      <p>Enter your approved LaunchPoint email. We’ll send a secure, one-time sign-in link.</p>
+      <form id="auth-form" class="auth-form">
+        <label for="auth-email">Email address</label>
+        <input id="auth-email" type="email" autocomplete="email" required placeholder="you@mylaunch.dev">
+        <button class="primary-action" type="submit">Email me a sign-in link</button>
+        <p class="form-status" id="auth-status" role="status">Checking your session…</p>
+      </form>
+    </div>
+  </section>
+
+  <header class="studio-header authenticated-only">
     <a class="studio-brand" href="/" aria-label="LaunchPoint home">
       <strong>LaunchPoint</strong>
       <span>Studio</span>
@@ -28,11 +43,12 @@
       <button class="command-button" id="command-button" type="button" aria-label="Open quick actions">
         <span>Quick actions</span><kbd>⌘ K</kbd>
       </button>
-      <button class="avatar-button" type="button" aria-label="Account menu">JF</button>
+      <span class="account-email" id="account-email"></span>
+      <button class="avatar-button" id="sign-out-button" type="button" aria-label="Sign out" title="Sign out">↗</button>
     </div>
   </header>
 
-  <main id="workspace" class="studio-main">
+  <main id="workspace" class="studio-main authenticated-only">
     <section class="page-heading">
       <div>
         <p class="eyebrow" id="view-eyebrow">Thursday, October 23</p>
@@ -140,7 +156,7 @@
           <div class="thread-list" id="thread-list"></div>
         </aside>
 
-        <section class="conversation-panel" aria-labelledby="conversation-client-name">
+        <section class="conversation-panel" id="conversation-panel" aria-labelledby="conversation-client-name">
           <header class="conversation-head">
             <div class="client-identity">
               <span class="client-mark" id="conversation-client-mark">NW</span>
@@ -162,7 +178,7 @@
                 <button class="icon-action" type="button" aria-label="Attach a file" disabled title="Attachments are coming next">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 12-8.5 8.5a6 6 0 0 1-8.5-8.5L12 3a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 1 1-2.8-2.8L14 6.8"></path></svg>
                 </button>
-                <span>Saved to the demo portal</span>
+                <span>Encrypted in transit and shared instantly</span>
               </div>
               <button class="primary-action" type="submit">Send in portal</button>
             </div>
@@ -175,7 +191,7 @@
     </section>
   </main>
 
-  <div class="demo-banner" role="note"><strong>Preview workspace</strong><span>Demo data and messages stay in this browser. No client is contacted.</span></div>
+  <div class="demo-banner authenticated-only" role="note"><strong>Secure preview</strong><span>Connected to LaunchPoint’s live Supabase workspace.</span></div>
 
   <dialog class="client-dialog" id="client-dialog">
     <form method="dialog" id="client-form">
@@ -199,6 +215,8 @@
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
+  <script src="js/supabase-config.js"></script>
   <script src="js/portal-data.js"></script>
   <script src="js/dashboard.js"></script>
 </body>

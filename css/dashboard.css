@@ -25,6 +25,23 @@ button { color: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
 [hidden] { display: none !important; }
+body:not([data-auth-state="ready"]) .authenticated-only { display: none !important; }
+body[data-auth-state="ready"] .auth-gate { display: none; }
+.auth-gate { min-height: 100dvh; display: grid; place-items: center; padding: 32px 20px; background: var(--canvas); }
+.auth-card { width: min(480px, 100%); padding: clamp(30px, 6vw, 56px); border: 1px solid var(--line); background: var(--paper); box-shadow: 0 24px 70px rgba(17, 23, 34, .08); }
+.auth-brand { display: inline-flex; gap: 10px; align-items: baseline; margin-bottom: 54px; color: var(--ink); text-decoration: none; font: 800 1.05rem/1 var(--display); letter-spacing: -.035em; }
+.auth-brand span { color: var(--muted); font: 500 .65rem/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+.auth-card h1 { margin: 0; font: 700 clamp(2rem, 7vw, 3.2rem)/.98 var(--display); letter-spacing: -.05em; }
+.auth-card > p:not(.section-kicker) { margin: 17px 0 0; color: var(--muted); font-size: .85rem; line-height: 1.7; }
+.auth-form { display: grid; gap: 11px; margin-top: 28px; }
+.auth-form label { color: var(--ink); font-size: .72rem; font-weight: 700; }
+.auth-form input { min-height: 48px; width: 100%; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink); }
+.auth-form .primary-action { margin-top: 3px; min-height: 48px; }
+.auth-form .form-status { min-height: 20px; margin: 3px 0 0; color: var(--muted); font-size: .68rem; line-height: 1.5; }
+.account-email { max-width: 190px; overflow: hidden; color: var(--muted); font: 500 .62rem/1 var(--mono); text-overflow: ellipsis; white-space: nowrap; }
+.inline-empty { padding: 36px 24px; color: var(--muted); font-size: .75rem; text-align: center; }
+.portal-account { display: flex; align-items: center; gap: 14px; color: var(--muted); font: 500 .61rem/1 var(--mono); }
+.portal-account > button { border: 0; padding: 7px 9px; background: transparent; color: var(--ink); font: 700 .65rem/1 var(--body); cursor: pointer; }
 .skip-link { position: fixed; top: 10px; left: 10px; z-index: 100; padding: 10px 14px; background: var(--ink); color: white; border-radius: 6px; transform: translateY(-150%); }
 .skip-link:focus { transform: translateY(0); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
