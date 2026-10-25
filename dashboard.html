@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>LaunchPoint Studio | Client dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Red+Hat+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="assets/logo-mark.svg">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body class="dashboard-page" data-auth-state="loading">
+  <a class="skip-link" href="#workspace">Skip to workspace</a>
+
+  <section class="auth-gate" id="auth-gate" aria-labelledby="auth-title">
+    <div class="auth-card">
+      <a class="auth-brand" href="/">LaunchPoint <span>Studio</span></a>
+      <p class="section-kicker">Secure workspace</p>
+      <h1 id="auth-title">Sign in to the studio.</h1>
+      <p>Enter your approved LaunchPoint email. We’ll send a secure, one-time sign-in link.</p>
+      <form id="auth-form" class="auth-form">
+        <label for="auth-email">Email address</label>
+        <input id="auth-email" type="email" autocomplete="email" required placeholder="you@mylaunch.dev">
+        <button class="primary-action" type="submit">Email me a sign-in link</button>
+        <p class="form-status" id="auth-status" role="status">Checking your session…</p>
+      </form>
+    </div>
+  </section>
+
+  <header class="studio-header authenticated-only">
+    <a class="studio-brand" href="/" aria-label="LaunchPoint home">
+      <strong>LaunchPoint</strong>
+      <span>Studio</span>
+    </a>
+    <nav class="studio-nav" aria-label="Dashboard">
+      <button class="nav-item is-active" type="button" data-view="overview" aria-current="page">Overview</button>
+      <button class="nav-item" type="button" data-view="clients">Clients <span id="nav-client-count">4</span></button>
+      <button class="nav-item" type="button" data-view="messages">Messages <span id="nav-unread-count">3</span></button>
+    </nav>
+    <div class="studio-actions">
+      <button class="command-button" id="command-button" type="button" aria-label="Open quick actions">
+        <span>Quick actions</span><kbd>⌘ K</kbd>
+      </button>
+      <span class="account-email" id="account-email"></span>
+      <button class="avatar-button" id="sign-out-button" type="button" aria-label="Sign out" title="Sign out">↗</button>
+    </div>
+  </header>
+
+  <main id="workspace" class="studio-main authenticated-only">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow" id="view-eyebrow">Thursday, October 23</p>
+        <h1 id="view-title">Good afternoon, Jacob.</h1>
+        <p id="view-description">Here’s what needs your attention across LaunchPoint.</p>
+      </div>
+      <button class="primary-action" id="new-client-button" type="button">
+        <span aria-hidden="true">+</span> New client
+      </button>
+    </section>
+
+    <section class="overview-view" id="overview-view" data-view-panel="overview">
+      <div class="signal-grid" aria-label="Business summary">
+        <article class="signal-card signal-card-featured">
+          <div class="signal-label"><span class="signal-dot"></span> Active clients</div>
+          <strong id="active-client-count">4</strong>
+          <p>Three projects moving, one awaiting approval.</p>
+        </article>
+        <article class="signal-card">
+          <div class="signal-label">Open projects</div>
+          <strong id="open-project-count">5</strong>
+          <p>Two milestones due this week.</p>
+        </article>
+        <article class="signal-card">
+          <div class="signal-label">Unread messages</div>
+          <strong id="unread-message-count">3</strong>
+          <p>Oldest reply is from 9:42 AM.</p>
+        </article>
+        <article class="signal-card">
+          <div class="signal-label">Awaiting approval</div>
+          <strong id="approval-count">1</strong>
+          <p>Website direction ready to review.</p>
+        </article>
+      </div>
+
+      <div class="overview-grid">
+        <section class="work-panel" aria-labelledby="attention-title">
+          <header class="panel-heading">
+            <div>
+              <p class="section-kicker">Priority queue</p>
+              <h2 id="attention-title">Needs attention</h2>
+            </div>
+            <button class="text-action" type="button" data-view-jump="clients">View all clients</button>
+          </header>
+          <div class="attention-list" id="attention-list"></div>
+        </section>
+
+        <aside class="day-panel" aria-labelledby="day-title">
+          <header class="panel-heading">
+            <div>
+              <p class="section-kicker">Today</p>
+              <h2 id="day-title">On your plate</h2>
+            </div>
+          </header>
+          <ol class="day-list">
+            <li><time>10:30</time><div><strong>Brand review</strong><span>Northline Wellness</span></div></li>
+            <li><time>1:00</time><div><strong>Campaign check-in</strong><span>Cedar &amp; Stone</span></div></li>
+            <li><time>3:30</time><div><strong>Website handoff</strong><span>Brightside Dental</span></div></li>
+          </ol>
+          <div class="day-note">
+            <span class="day-note-mark">LP</span>
+            <p><strong>One clear next step.</strong> Keep every client moving without chasing context across email threads.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="clients-view" id="clients-view" data-view-panel="clients" hidden>
+      <div class="clients-toolbar">
+        <label class="search-control">
+          <span class="sr-only">Search clients</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="m16 16 4 4"></path></svg>
+          <input id="client-search" type="search" placeholder="Search clients or projects">
+        </label>
+        <div class="filter-set" aria-label="Filter clients">
+          <button class="filter-button is-active" type="button" data-client-filter="all">All</button>
+          <button class="filter-button" type="button" data-client-filter="active">Active</button>
+          <button class="filter-button" type="button" data-client-filter="waiting">Waiting</button>
+          <button class="filter-button" type="button" data-client-filter="complete">Complete</button>
+        </div>
+      </div>
+      <div class="client-table-wrap">
+        <table class="client-table">
+          <thead><tr><th>Client</th><th>Project</th><th>Status</th><th>Next step</th><th>Last contact</th><th><span class="sr-only">Open</span></th></tr></thead>
+          <tbody id="client-table-body"></tbody>
+        </table>
+        <div class="empty-state" id="clients-empty" hidden>
+          <span>LP</span><h2>No clients match</h2><p>Clear your search or choose another status.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="messages-view" id="messages-view" data-view-panel="messages" hidden>
+      <div class="message-shell">
+        <aside class="thread-sidebar">
+          <div class="thread-sidebar-head">
+            <div><p class="section-kicker">Inbox</p><h2>Client messages</h2></div>
+            <span class="live-indicator"><span></span> Portal live</span>
+          </div>
+          <label class="search-control search-control-compact">
+            <span class="sr-only">Search conversations</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="m16 16 4 4"></path></svg>
+            <input id="thread-search" type="search" placeholder="Search conversations">
+          </label>
+          <div class="thread-list" id="thread-list"></div>
+        </aside>
+
+        <section class="conversation-panel" id="conversation-panel" aria-labelledby="conversation-client-name">
+          <header class="conversation-head">
+            <div class="client-identity">
+              <span class="client-mark" id="conversation-client-mark">NW</span>
+              <div><h2 id="conversation-client-name">Northline Wellness</h2><p id="conversation-project-name">Website &amp; booking flow</p></div>
+            </div>
+            <div class="conversation-tools">
+              <button class="icon-action" id="copy-portal-link" type="button" aria-label="Copy client portal link">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="10" height="10" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path></svg>
+              </button>
+              <button class="secondary-action" id="open-client-portal" type="button">Open client portal</button>
+            </div>
+          </header>
+          <div class="message-history" id="message-history" aria-live="polite"></div>
+          <form class="composer" id="message-form">
+            <label for="message-input">Message <span id="composer-client-name">Northline Wellness</span></label>
+            <textarea id="message-input" rows="3" maxlength="1200" placeholder="Write a clear update or next step…" required></textarea>
+            <div class="composer-footer">
+              <div class="composer-options">
+                <button class="icon-action" type="button" aria-label="Attach a file" disabled title="Attachments are coming next">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 12-8.5 8.5a6 6 0 0 1-8.5-8.5L12 3a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 1 1-2.8-2.8L14 6.8"></path></svg>
+                </button>
+                <span>Encrypted in transit and shared instantly</span>
+              </div>
+              <button class="primary-action" type="submit">Send in portal</button>
+            </div>
+            <p class="form-status" id="message-status" role="status"></p>
+          </form>
+        </section>
+
+        <aside class="client-context" id="client-context" aria-label="Client context"></aside>
+      </div>
+    </section>
+  </main>
+
+  <div class="demo-banner authenticated-only" role="note"><strong>Secure preview</strong><span>Connected to LaunchPoint’s live Supabase workspace.</span></div>
+
+  <dialog class="client-dialog" id="client-dialog">
+    <form method="dialog" id="client-form">
+      <header><div><p class="section-kicker">Client setup</p><h2>Add a LaunchPoint client</h2></div><button class="dialog-close" value="cancel" aria-label="Close" type="submit">×</button></header>
+      <div class="dialog-grid">
+        <label>Business name<input name="business" required maxlength="80" placeholder="Northline Wellness"></label>
+        <label>Primary contact<input name="contact" required maxlength="80" placeholder="Maya Robinson"></label>
+        <label>Email<input name="email" type="email" required maxlength="160" placeholder="maya@example.com"></label>
+        <label>Project<input name="project" required maxlength="120" placeholder="Website &amp; booking flow"></label>
+        <label>Status<select name="status"><option value="active">Active</option><option value="waiting">Waiting</option><option value="complete">Complete</option></select></label>
+        <label>Next step<input name="nextStep" required maxlength="120" placeholder="Review homepage direction"></label>
+      </div>
+      <footer><button class="secondary-action" value="cancel" type="submit">Cancel</button><button class="primary-action" value="save" type="submit">Add client</button></footer>
+    </form>
+  </dialog>
+
+  <div class="command-menu" id="command-menu" hidden>
+    <button type="button" data-command="new-client"><span>New client</span><kbd>N</kbd></button>
+    <button type="button" data-command="messages"><span>Open messages</span><kbd>M</kbd></button>
+    <button type="button" data-command="portal"><span>Open active client portal</span><kbd>P</kbd></button>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/portal-data.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

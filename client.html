@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Your LaunchPoint | Client portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Red+Hat+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="assets/logo-mark.svg">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body class="portal-page" data-auth-state="loading">
+  <section class="auth-gate" id="auth-gate" aria-labelledby="auth-title">
+    <div class="auth-card">
+      <a class="auth-brand" href="/">LaunchPoint</a>
+      <p class="section-kicker">Private client space</p>
+      <h1 id="auth-title">Open your project portal.</h1>
+      <p>Use the same email address where LaunchPoint sent your portal invitation.</p>
+      <form id="auth-form" class="auth-form">
+        <label for="auth-email">Email address</label>
+        <input id="auth-email" type="email" autocomplete="email" required placeholder="you@company.com">
+        <button class="primary-action" type="submit">Email me a sign-in link</button>
+        <p class="form-status" id="auth-status" role="status">Checking your session…</p>
+      </form>
+    </div>
+  </section>
+
+  <header class="portal-header authenticated-only">
+    <a href="/" class="portal-brand" aria-label="LaunchPoint home">LaunchPoint</a>
+    <div class="portal-account"><span class="portal-secure"><span></span> Private client space</span><span id="account-email"></span><button id="sign-out-button" type="button">Sign out</button></div>
+  </header>
+
+  <main class="portal-main authenticated-only">
+    <section class="portal-intro">
+      <p class="eyebrow" id="portal-stage">Project in progress</p>
+      <h1>Hi <span id="portal-first-name">Maya</span>,<br>here’s where we are.</h1>
+      <p id="portal-project-summary">Your new website and booking flow are taking shape. Everything you need to review is collected here.</p>
+    </section>
+
+    <section class="portal-status" aria-labelledby="portal-project-title">
+      <div class="portal-project-head">
+        <div><p class="section-kicker">Current project</p><h2 id="portal-project-title">Website &amp; booking flow</h2></div>
+        <span class="status-chip status-active" id="portal-status-chip">In progress</span>
+      </div>
+      <div class="progress-track"><span id="portal-progress-bar"></span></div>
+      <div class="progress-labels"><span id="portal-progress-copy">2 of 4 milestones complete</span><strong id="portal-target-date">Target: Nov 14</strong></div>
+      <ol class="milestone-list" id="milestone-list"></ol>
+    </section>
+
+    <div class="portal-grid">
+      <section class="portal-message-card" aria-labelledby="portal-messages-title">
+        <header class="panel-heading">
+          <div><p class="section-kicker">Direct line</p><h2 id="portal-messages-title">Messages</h2></div>
+          <span class="live-indicator"><span></span> LaunchPoint</span>
+        </header>
+        <div class="portal-message-history" id="portal-message-history" aria-live="polite"></div>
+        <form class="portal-reply" id="portal-reply-form">
+          <label for="portal-reply-input">Reply to LaunchPoint</label>
+          <textarea id="portal-reply-input" rows="3" maxlength="1200" placeholder="Ask a question or leave feedback…" required></textarea>
+          <div><span>Your reply is delivered securely to LaunchPoint.</span><button class="primary-action" type="submit">Send reply</button></div>
+          <p class="form-status" id="portal-reply-status" role="status"></p>
+        </form>
+      </section>
+
+      <aside class="portal-next-card">
+        <p class="section-kicker">Your next step</p>
+        <h2 id="portal-next-title">Review homepage direction</h2>
+        <p id="portal-next-copy">We’ve prepared the first visual direction. Review the layout and leave one clear round of feedback.</p>
+        <button class="primary-action portal-review-action" id="portal-review-button" type="button">Review &amp; approve</button>
+        <div class="portal-contact">
+          <span class="client-mark">JF</span>
+          <div><strong>Your LaunchPoint contact</strong><span>Jacob Fayad · Usually replies within a business day</span></div>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="portal-footer"><span>LaunchPoint Technologies, Inc.</span><a href="mailto:hello@mylaunch.dev">Need help? Contact us</a></footer>
+  </main>
+
+  <div class="demo-banner authenticated-only" role="note"><strong>Secure portal</strong><span>Your updates sync across devices.</span></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/portal-data.js"></script>
+  <script src="js/client-portal.js"></script>
+</body>
+</html>
