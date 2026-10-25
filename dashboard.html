@@ -19,11 +19,14 @@
       <a class="auth-brand" href="/">LaunchPoint <span>Studio</span></a>
       <p class="section-kicker">Secure workspace</p>
       <h1 id="auth-title">Sign in to the studio.</h1>
-      <p>Enter your approved LaunchPoint email. We’ll send a secure, one-time sign-in link.</p>
+      <p>Sign in with your approved LaunchPoint credentials, or request a secure one-time email link.</p>
       <form id="auth-form" class="auth-form">
         <label for="auth-email">Email address</label>
         <input id="auth-email" type="email" autocomplete="email" required placeholder="you@mylaunch.dev">
-        <button class="primary-action" type="submit">Email me a sign-in link</button>
+        <label for="auth-password">Password</label>
+        <input id="auth-password" type="password" autocomplete="current-password" required placeholder="Enter your password">
+        <button class="primary-action" type="submit">Sign in</button>
+        <button class="auth-link-action" id="magic-link-button" type="button">Email me a one-time sign-in link</button>
         <p class="form-status" id="auth-status" role="status">Checking your session…</p>
       </form>
     </div>

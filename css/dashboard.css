@@ -37,6 +37,9 @@ body[data-auth-state="ready"] .auth-gate { display: none; }
 .auth-form label { color: var(--ink); font-size: .72rem; font-weight: 700; }
 .auth-form input { min-height: 48px; width: 100%; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink); }
 .auth-form .primary-action { margin-top: 3px; min-height: 48px; }
+.auth-link-action { min-height: 38px; border: 0; background: transparent; color: var(--accent-dark); font-size: .7rem; font-weight: 700; cursor: pointer; }
+.auth-link-action:hover { text-decoration: underline; }
+.auth-link-action:disabled { cursor: wait; opacity: .55; }
 .auth-form .form-status { min-height: 20px; margin: 3px 0 0; color: var(--muted); font-size: .68rem; line-height: 1.5; }
 .account-email { max-width: 190px; overflow: hidden; color: var(--muted); font: 500 .62rem/1 var(--mono); text-overflow: ellipsis; white-space: nowrap; }
 .inline-empty { padding: 36px 24px; color: var(--muted); font-size: .75rem; text-align: center; }

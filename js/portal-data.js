@@ -42,6 +42,15 @@
     if (error) throw error;
   }
 
+  async function signInWithPassword(email, password) {
+    const { data, error } = await db.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password
+    });
+    if (error) throw error;
+    return data.session;
+  }
+
   async function signOut() {
     const { error } = await db.auth.signOut();
     if (error) throw error;
@@ -117,7 +126,7 @@
   }
 
   window.LaunchPointPortal = {
-    db, getSession, sendMagicLink, signOut, getRole, loadClients, loadClient, createClient,
+    db, getSession, sendMagicLink, signInWithPassword, signOut, getRole, loadClients, loadClient, createClient,
     addMessage, markMessagesRead, respondToApproval, subscribe,
     onAuthStateChange: (callback) => db.auth.onAuthStateChange(callback),
     formatTime, initials

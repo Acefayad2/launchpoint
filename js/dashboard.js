@@ -169,13 +169,25 @@
   $('#auth-form').addEventListener('submit', async (event) => {
     event.preventDefault();
     const email = $('#auth-email').value.trim();
-    const button = event.currentTarget.querySelector('button');
-    button.disabled = true; $('#auth-status').textContent = 'Sending your secure sign-in link…';
+    const password = $('#auth-password').value;
+    const button = event.currentTarget.querySelector('[type="submit"]');
+    button.disabled = true; $('#auth-status').textContent = 'Signing in securely…';
+    try {
+      await Portal.signInWithPassword(email, password);
+      await initialize();
+    } catch (error) { $('#auth-status').textContent = error.message; }
+    finally { button.disabled = false; }
+  });
+
+  $('#magic-link-button').addEventListener('click', async (event) => {
+    const email = $('#auth-email').value.trim();
+    if (!email) return $('#auth-status').textContent = 'Enter your approved email address first.';
+    event.currentTarget.disabled = true; $('#auth-status').textContent = 'Sending your secure sign-in link…';
     try {
       await Portal.sendMagicLink(email, new URL('dashboard.html', location.href).href);
       $('#auth-status').textContent = 'Check your email and open the secure link to continue.';
     } catch (error) { $('#auth-status').textContent = error.message; }
-    finally { button.disabled = false; }
+    finally { event.currentTarget.disabled = false; }
   });
 
   $('#sign-out-button').addEventListener('click', async () => { await Portal.signOut(); location.reload(); });
