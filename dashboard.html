@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Red+Hat+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/svg+xml" href="assets/logo-mark.svg">
+  <link rel="icon" type="image/png" href="assets/launchpoint-mark-v2.png">
   <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body class="dashboard-page" data-auth-state="loading">
@@ -16,7 +16,10 @@
 
   <section class="auth-gate" id="auth-gate" aria-labelledby="auth-title">
     <div class="auth-card">
-      <a class="auth-brand" href="/">LaunchPoint <span>Studio</span></a>
+      <a class="auth-brand" href="/">
+        <img class="auth-brand-logo" src="assets/launchpoint-logo-v2.png" alt="LaunchPoint">
+        <span>Studio</span>
+      </a>
       <p class="section-kicker">Secure workspace</p>
       <h1 id="auth-title">Sign in to the studio.</h1>
       <p>Sign in with your approved LaunchPoint credentials, or request a secure one-time email link.</p>
@@ -34,7 +37,7 @@
 
   <header class="studio-header authenticated-only">
     <a class="studio-brand" href="/" aria-label="LaunchPoint home">
-      <strong>LaunchPoint</strong>
+      <img class="studio-brand-logo" src="assets/launchpoint-logo-v2.png" alt="LaunchPoint">
       <span>Studio</span>
     </a>
     <nav class="studio-nav" aria-label="Dashboard">

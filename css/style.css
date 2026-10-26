@@ -159,8 +159,10 @@ ul { list-style: none; }
 }
 
 .nav-logo-img {
-  height: 52px;
+  height: 60px;
   width: auto;
+  display: block;
+  border-radius: 10px;
 }
 
 .nav-links {
@@ -823,8 +825,10 @@ ul { list-style: none; }
 }
 
 .footer-logo {
-  height: 48px;
+  height: 92px;
   width: auto;
+  display: block;
+  border-radius: 12px;
   margin-bottom: 16px;
 }
 .footer-brand p {
