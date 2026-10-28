@@ -12,10 +12,10 @@
   let paymentStatusLoaded = false;
 
   const headings = {
-    overview: [new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date()), 'Good to see you.', 'Here’s what needs your attention across LaunchPoint.'],
+    overview: ['LaunchPoint / overview', 'The work at a glance.', 'Clients, conversations, and the next decisions in one place.'],
     clients: ['Client roster', 'Every client, one clear view.', 'Track the work, the next decision, and the last conversation.'],
     messages: ['Client care', 'Keep the work moving.', 'Reply without losing the project context around the conversation.'],
-    payments: ['Payments', 'Get paid without slowing down.', 'Create a single-use client invoice and send it while the client is still on your mind.']
+    payments: ['LaunchPoint / invoices', 'Create an invoice.', 'A secure payment page for your client, ready in seconds.']
   };
 
   const activeClient = () => clients.find((client) => client.id === activeClientId) || clients[0];
@@ -45,6 +45,7 @@
     $('#view-title').textContent = title;
     $('#view-description').textContent = description;
     $('#new-client-button').hidden = view === 'payments';
+    $('#new-invoice-button').hidden = view === 'payments';
     if (view === 'messages') renderMessages();
     if (view === 'clients') renderClients();
     if (view === 'payments') {
@@ -221,7 +222,7 @@
         initialize.realtimeTimer = setTimeout(() => refresh().catch(console.error), 250);
       });
       const initialView = new URLSearchParams(location.search).get('view');
-      setView(['clients', 'messages', 'payments'].includes(initialView) ? initialView : 'overview');
+      setView(['overview', 'clients', 'messages', 'payments'].includes(initialView) ? initialView : 'payments');
     } catch (error) {
       console.error(error);
       showAuth('The workspace could not load. Please try signing in again.');
@@ -334,6 +335,8 @@
 
   const dialog = $('#client-dialog');
   $('#new-client-button').addEventListener('click', () => dialog.showModal());
+  $('#new-invoice-button').addEventListener('click', () => { setView('payments'); $('#payment-company').focus(); });
+  $('#overview-invoice-button').addEventListener('click', () => { setView('payments'); $('#payment-company').focus(); });
   $('#client-form').addEventListener('submit', async (event) => {
     const submitter = event.submitter;
     if (!submitter || submitter.value !== 'save') return;

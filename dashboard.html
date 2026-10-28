@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>LaunchPoint Studio | Client dashboard</title>
+  <title>LaunchPoint Studio | Invoices and clients</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Red+Hat+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Red+Hat+Display:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="assets/launchpoint-mark-v2.png">
   <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/dashboard-glass.css?v=20261028-1">
 </head>
 <body class="dashboard-page" data-auth-state="loading">
   <a class="skip-link" href="#workspace">Skip to workspace</a>
@@ -41,10 +42,10 @@
       <span>Studio</span>
     </a>
     <nav class="studio-nav" aria-label="Dashboard">
-      <button class="nav-item is-active" type="button" data-view="overview" aria-current="page">Overview</button>
-      <button class="nav-item" type="button" data-view="clients">Clients <span id="nav-client-count">4</span></button>
-      <button class="nav-item" type="button" data-view="messages">Messages <span id="nav-unread-count">3</span></button>
-      <button class="nav-item" type="button" data-view="payments">Payments</button>
+      <button class="nav-item is-active" type="button" data-view="payments" aria-current="page">Invoices</button>
+      <button class="nav-item" type="button" data-view="overview">Overview</button>
+      <button class="nav-item" type="button" data-view="clients">Clients <span id="nav-client-count">—</span></button>
+      <button class="nav-item" type="button" data-view="messages">Messages <span id="nav-unread-count">—</span></button>
     </nav>
     <div class="studio-actions">
       <button class="command-button" id="command-button" type="button" aria-label="Open quick actions">
@@ -58,36 +59,34 @@
   <main id="workspace" class="studio-main authenticated-only">
     <section class="page-heading">
       <div>
-        <p class="eyebrow" id="view-eyebrow">Thursday, October 23</p>
-        <h1 id="view-title">Good afternoon, Jacob.</h1>
-        <p id="view-description">Here’s what needs your attention across LaunchPoint.</p>
+        <p class="eyebrow" id="view-eyebrow">LaunchPoint / invoices</p>
+        <h1 id="view-title">Create an invoice.</h1>
+        <p id="view-description">A secure payment page for your client, ready in seconds.</p>
       </div>
-      <button class="primary-action" id="new-client-button" type="button">
-        <span aria-hidden="true">+</span> New client
-      </button>
+      <div class="heading-actions"><button class="primary-action" id="new-invoice-button" type="button" hidden><span aria-hidden="true">+</span> New invoice</button><button class="secondary-action" id="new-client-button" type="button" hidden><span aria-hidden="true">+</span> New client</button></div>
     </section>
 
-    <section class="overview-view" id="overview-view" data-view-panel="overview">
+    <section class="overview-view" id="overview-view" data-view-panel="overview" hidden>
       <div class="signal-grid" aria-label="Business summary">
         <article class="signal-card signal-card-featured">
           <div class="signal-label"><span class="signal-dot"></span> Active clients</div>
-          <strong id="active-client-count">4</strong>
-          <p>Three projects moving, one awaiting approval.</p>
+          <strong id="active-client-count">—</strong>
+          <p>Clients with work in progress.</p>
         </article>
         <article class="signal-card">
           <div class="signal-label">Open projects</div>
-          <strong id="open-project-count">5</strong>
-          <p>Two milestones due this week.</p>
+          <strong id="open-project-count">—</strong>
+          <p>Projects not yet complete.</p>
         </article>
         <article class="signal-card">
           <div class="signal-label">Unread messages</div>
-          <strong id="unread-message-count">3</strong>
-          <p>Oldest reply is from 9:42 AM.</p>
+          <strong id="unread-message-count">—</strong>
+          <p>Client conversations to answer.</p>
         </article>
         <article class="signal-card">
           <div class="signal-label">Awaiting approval</div>
-          <strong id="approval-count">1</strong>
-          <p>Website direction ready to review.</p>
+          <strong id="approval-count">—</strong>
+          <p>Client decisions still pending.</p>
         </article>
       </div>
 
@@ -103,22 +102,16 @@
           <div class="attention-list" id="attention-list"></div>
         </section>
 
-        <aside class="day-panel" aria-labelledby="day-title">
+        <aside class="invoice-spotlight" aria-labelledby="day-title">
           <header class="panel-heading">
             <div>
-              <p class="section-kicker">Today</p>
-              <h2 id="day-title">On your plate</h2>
+              <p class="section-kicker">Quick action</p>
+              <h2 id="day-title">Get an invoice out.</h2>
             </div>
           </header>
-          <ol class="day-list">
-            <li><time>10:30</time><div><strong>Brand review</strong><span>Northline Wellness</span></div></li>
-            <li><time>1:00</time><div><strong>Campaign check-in</strong><span>Cedar &amp; Stone</span></div></li>
-            <li><time>3:30</time><div><strong>Website handoff</strong><span>Brightside Dental</span></div></li>
-          </ol>
-          <div class="day-note">
-            <span class="day-note-mark">LP</span>
-            <p><strong>One clear next step.</strong> Keep every client moving without chasing context across email threads.</p>
-          </div>
+          <p class="spotlight-copy">Add the company, amount, and what the work covers. Copy the link or send it by text through Quo.</p>
+          <button class="spotlight-action" id="overview-invoice-button" type="button">Create invoice <span aria-hidden="true">↗</span></button>
+          <span class="spotlight-footnote">Stripe handles payment details securely.</span>
         </aside>
       </div>
     </section>
@@ -197,14 +190,14 @@
       </div>
     </section>
 
-    <section class="payments-view" id="payments-view" data-view-panel="payments" hidden>
+    <section class="payments-view" id="payments-view" data-view-panel="payments">
       <div class="payment-layout">
         <section class="payment-builder" aria-labelledby="payment-builder-title">
           <header class="payment-panel-head">
             <div>
-              <p class="section-kicker">Quick payment request</p>
-              <h2 id="payment-builder-title">Create a client invoice</h2>
-              <p>Enter the job details once. Your client gets a LaunchPoint invoice with Apple Pay, card, and other available payment options.</p>
+              <p class="section-kicker">01 / Build your invoice</p>
+              <h2 id="payment-builder-title">The details, then the link.</h2>
+              <p>Fill in the essentials. Your client gets a branded invoice with secure payment options.</p>
             </div>
             <div class="integration-statuses" aria-label="Payment integrations">
               <span class="integration-status" id="stripe-status"><i></i> Stripe checking</span>
@@ -214,14 +207,14 @@
 
           <form class="payment-form" id="payment-form">
             <div class="payment-field-grid">
-              <label>Company name<input id="payment-company" name="company" required maxlength="100" autocomplete="organization" placeholder="Northline Wellness"></label>
-              <label>Mobile number <span>Needed only to text</span><input id="payment-phone" name="phone" type="tel" maxlength="20" autocomplete="tel" placeholder="+1 313 555 0198"></label>
-              <label>Amount <span>USD</span><span class="money-input"><b>$</b><input id="payment-amount" name="amount" required type="number" min="1" max="50000" step="0.01" inputmode="decimal" placeholder="1,250.00"></span></label>
-              <label>What is this for?<input id="payment-description" name="description" required maxlength="120" placeholder="Website strategy deposit"></label>
+              <label>Company name<input id="payment-company" name="company" required maxlength="100" autocomplete="organization" placeholder="Client company"></label>
+              <label>Amount <span>USD</span><span class="money-input"><b>$</b><input id="payment-amount" name="amount" required type="number" min="1" max="50000" step="0.01" inputmode="decimal" placeholder="0.00"></span></label>
+              <label class="field-wide">What is this for?<input id="payment-description" name="description" required maxlength="120" placeholder="Briefly describe the work"></label>
+              <label class="field-wide">Client mobile number <span>Only if texting the invoice</span><input id="payment-phone" name="phone" type="tel" maxlength="20" autocomplete="tel" placeholder="+1 313 555 0198"></label>
             </div>
             <div class="payment-actions">
-              <button class="primary-action" id="generate-payment-link" type="submit" value="generate">Generate invoice link</button>
-              <button class="secondary-action" id="send-payment-link" type="submit" value="send">Generate &amp; text with Quo</button>
+              <button class="primary-action" id="generate-payment-link" type="submit" value="generate">Create invoice link <span aria-hidden="true">↗</span></button>
+              <button class="secondary-action" id="send-payment-link" type="submit" value="send">Create &amp; text with Quo</button>
               <p class="payment-form-status" id="payment-form-status" role="status">Stripe handles the card details. LaunchPoint never stores them.</p>
             </div>
           </form>
@@ -241,8 +234,9 @@
 
         <aside class="payment-side" aria-labelledby="recent-payment-title">
           <header>
-            <p class="section-kicker">This browser</p>
-            <h2 id="recent-payment-title">Recent links</h2>
+            <p class="section-kicker">02 / Your workspace</p>
+            <h2 id="recent-payment-title">Recent invoices</h2>
+            <p class="recent-local-note">Saved in this browser only</p>
           </header>
           <div class="recent-payment-list" id="recent-payment-list"></div>
           <div class="payment-safety-note">
@@ -253,8 +247,6 @@
       </div>
     </section>
   </main>
-
-  <div class="demo-banner authenticated-only" role="note"><strong>Secure preview</strong><span>Connected to LaunchPoint’s live Supabase workspace.</span></div>
 
   <dialog class="client-dialog" id="client-dialog">
     <form method="dialog" id="client-form">
@@ -274,7 +266,7 @@
   <div class="command-menu" id="command-menu" hidden>
     <button type="button" data-command="new-client"><span>New client</span><kbd>N</kbd></button>
     <button type="button" data-command="messages"><span>Open messages</span><kbd>M</kbd></button>
-    <button type="button" data-command="payments"><span>Create payment link</span><kbd>$</kbd></button>
+    <button type="button" data-command="payments"><span>Create invoice</span><kbd>$</kbd></button>
     <button type="button" data-command="portal"><span>Open active client portal</span><kbd>P</kbd></button>
   </div>
 
@@ -282,6 +274,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/portal-data.js"></script>
-  <script src="js/dashboard.js?v=20261028-1"></script>
+  <script src="js/dashboard.js?v=20261028-2"></script>
 </body>
 </html>
