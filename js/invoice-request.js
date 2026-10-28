@@ -74,7 +74,19 @@ function setPaying(value) {
   $('#pay-label').textContent = value ? 'Processing securely…' : `Pay ${money(invoice.amount)}`;
 }
 
-function showResult(paymentStatus, warning = '') {
+function showPaidCard(card) {
+  if (!card || !/^[0-9]{4}$/.test(card.last4) || !/^[a-z_]+$/.test(card.brand)) return '';
+  const names = { amex: 'American Express', diners: 'Diners Club', discover: 'Discover', jcb: 'JCB', mastercard: 'Mastercard', unionpay: 'UnionPay', visa: 'Visa' };
+  const brand = names[card.brand] || 'Card';
+  $('#card-stage').classList.remove('is-card-entry', 'is-focused');
+  $('#card-stage').classList.add('is-complete', 'is-paid');
+  $('#card-entry-label').textContent = `•••• ${card.last4}`;
+  $('#card-method').textContent = brand;
+  $('#card-feedback').textContent = `Paid with ${brand} ending in ${card.last4}.`;
+  return `Paid with ${brand} ending in ${card.last4}.`;
+}
+
+function showResult(paymentStatus, warning = '', card = null) {
   const succeeded = paymentStatus === 'succeeded';
   const result = document.createElement('section');
   result.className = 'payment-result';
@@ -93,6 +105,10 @@ function showResult(paymentStatus, warning = '') {
   home.href = '/';
   home.textContent = 'Return to LaunchPoint ↗';
   result.append(mark, heading, description, home);
+  if (succeeded) {
+    const paidWith = showPaidCard(card);
+    if (paidWith) { const note = document.createElement('p'); note.textContent = paidWith; result.append(note); }
+  }
   if (warning) { const note = document.createElement('p'); note.textContent = warning; result.append(note); }
   form.replaceWith(result);
   $('#invoice-status').textContent = succeeded ? 'Paid' : 'Processing';
@@ -144,7 +160,11 @@ async function completePayment() {
     }
     const warning = confirmation.paymentIntent.status === 'succeeded' && pendingPhone
       ? await sendPhoneReceipt(pendingPhone) : '';
-    showResult(confirmation.paymentIntent.status, warning);
+    let card = null;
+    if (confirmation.paymentIntent.status === 'succeeded') {
+      try { card = (await requestInvoice()).card; } catch { /* Payment confirmation must remain visible. */ }
+    }
+    showResult(confirmation.paymentIntent.status, warning, card);
   } catch (error) {
     status.textContent = error instanceof Error ? error.message : 'Payment could not be completed. Please try again.';
     setPaying(false);
@@ -178,7 +198,7 @@ async function initialize() {
     let savedPhone = '';
     try { savedPhone = sessionStorage.getItem(`invoice-receipt:${invoiceId}`) || ''; } catch { /* Receipt storage is optional. */ }
     const warning = invoice.status === 'succeeded' ? await sendPhoneReceipt(savedPhone) : '';
-    showResult(invoice.status, warning);
+    showResult(invoice.status, warning, invoice.card);
     return;
   }
   if (invoice.status !== 'requires_payment_method' || !invoice.clientSecret) {

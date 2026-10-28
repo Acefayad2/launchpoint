@@ -59,19 +59,33 @@ async function stripeGet(path: string, secret: string) {
 
 export default async (request: Request) => {
   try {
-    if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
+    if (!['GET', 'POST'].includes(request.method)) return json({ error: 'Method not allowed.' }, 405);
 
     const stripeSecret = Netlify.env.get('STRIPE_SECRET_KEY') || '';
     const quoApiKey = Netlify.env.get('QUO_API_KEY') || '';
     const quoFromNumber = (Netlify.env.get('QUO_FROM_NUMBER') || '').replace(/[^+\d]/g, '');
     if (!stripeSecret) return json({ error: 'LaunchPoint secure checkout is being connected. Please try again shortly.' }, 503);
 
-    const payload = await request.json().catch(() => ({}));
-    const invoiceId = cleanText(payload.invoiceId, 80);
+    const payload = request.method === 'POST' ? await request.json().catch(() => ({})) : {};
+    const invoiceId = request.method === 'GET' ? new URL(request.url).searchParams.get('invoiceId') || '' : cleanText(payload.invoiceId, 80);
     const invoice = INVOICES.get(invoiceId);
     const action = payload.action === 'send-phone-receipt' ? 'send-phone-receipt' : 'create';
     const requestId = /^[a-f0-9-]{36}$/i.test(payload.requestId || '') ? payload.requestId : crypto.randomUUID();
     if (!invoice) return json({ error: 'This invoice could not be found.' }, 404);
+
+    if (request.method === 'GET') {
+      const paymentIntentId = new URL(request.url).searchParams.get('paymentIntentId') || '';
+      if (!/^pi_[A-Za-z0-9_]+$/.test(paymentIntentId)) return json({ error: 'The payment could not be verified.' }, 400);
+      const paymentIntent = await stripeGet(`/payment_intents/${encodeURIComponent(paymentIntentId)}?expand%5B%5D=latest_charge`, stripeSecret);
+      if (paymentIntent.status !== 'succeeded' || paymentIntent.amount_received !== invoice.amountInCents
+        || paymentIntent.currency !== invoice.currency || paymentIntent.metadata?.invoice_id !== invoiceId) {
+        return json({ error: 'The payment has not been completed.' }, 409);
+      }
+      const details = paymentIntent.latest_charge?.payment_method_details?.card;
+      const card = !details?.wallet && /^[0-9]{4}$/.test(details?.last4 || '') && /^[a-z_]+$/.test(details?.brand || '')
+        ? { brand: details.brand, last4: details.last4 } : null;
+      return json({ card });
+    }
 
     if (action === 'send-phone-receipt') {
       const phone = cleanText(payload.receiptContact, 24).replace(/[^+\d]/g, '');
@@ -134,6 +148,6 @@ export default async (request: Request) => {
 
 export const config = {
   path: '/api/invoice-wallet-intent',
-  method: ['POST'],
+  method: ['GET', 'POST'],
   rateLimit: { action: 'rate_limit', windowLimit: 20, windowSize: 60, aggregateBy: ['domain', 'ip'] }
 };

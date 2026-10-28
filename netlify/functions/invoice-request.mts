@@ -57,6 +57,16 @@ export default async (request: Request) => {
     }
 
     if (request.method === 'GET') {
+      let card = null;
+      if (intent.status === 'succeeded' && intent.amount_received === intent.amount) {
+        try {
+          const paidIntent = await stripeRequest(`/payment_intents/${encodeURIComponent(id)}?expand%5B%5D=latest_charge`, secret);
+          const details = paidIntent?.latest_charge?.payment_method_details?.card;
+          if (!details?.wallet && /^[0-9]{4}$/.test(details?.last4 || '') && /^[a-z_]+$/.test(details?.brand || '')) {
+            card = { brand: details.brand, last4: details.last4 };
+          }
+        } catch { /* Card display is optional; never block a paid invoice. */ }
+      }
       return json({
         id: intent.id,
         reference: intent.metadata.reference,
@@ -66,7 +76,8 @@ export default async (request: Request) => {
         currency: intent.currency,
         status: intent.status,
         created: intent.created,
-        clientSecret: intent.status === 'requires_payment_method' ? intent.client_secret : null
+        clientSecret: intent.status === 'requires_payment_method' ? intent.client_secret : null,
+        card
       });
     }
     if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
