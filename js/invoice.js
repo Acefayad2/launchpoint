@@ -281,12 +281,13 @@ async function initializeExpressCheckout() {
     payButton.disabled = paying;
   });
   paymentElement.on('focus', () => { cardStage.classList.add('is-focused'); });
-  paymentElement.on('blur', () => { cardStage.classList.remove('is-focused'); });
+  paymentElement.on('blur', () => { cardStage.classList.remove('is-focused'); cardStage.classList.remove('is-card-entry'); });
   paymentElement.on('change', (event) => {
     const methods = { card: 'Card', cashapp: 'Cash App Pay', klarna: 'Klarna', us_bank_account: 'Bank account', amazon_pay: 'Amazon Pay', link: 'Link' };
     const label = methods[event.value?.type] || 'Secure payment';
     document.querySelector('#card-method').textContent = label;
     cardStage.classList.toggle('is-complete', event.complete);
+    cardStage.classList.toggle('is-card-entry', event.value?.type === 'card' && !event.complete && !event.empty);
     cardFeedback.textContent = event.complete ? `${label} details ready. Confirm when you’re ready.` : 'Your project. One secure payment.';
   });
   paymentElement.mount('#payment-element');
