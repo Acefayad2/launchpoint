@@ -90,15 +90,22 @@ export default async (request: Request) => {
       return json({ saved: true });
     }
 
+    if (payload.action === 'set-phone') {
+      const phone = String(payload.phone || '').trim();
+      if (!validPhone(phone)) return json({ error: 'Enter a valid mobile number.' }, 400);
+      if (intent.status !== 'requires_payment_method') return json({ error: 'This invoice is no longer awaiting payment.' }, 409);
+      await stripeRequest(`/payment_intents/${encodeURIComponent(id)}`, secret,
+        new URLSearchParams({ 'metadata[receipt_phone]': phone }));
+      return json({ saved: true });
+    }
+
     if (payload.action === 'send-phone-receipt') {
       const phone = String(payload.phone || '').trim();
       if (!validPhone(phone)) return json({ error: 'Enter a valid mobile number.' }, 400);
       if (intent.status !== 'succeeded' || intent.amount_received !== intent.amount) {
         return json({ error: 'The payment has not completed, so a receipt was not sent.' }, 409);
       }
-      if (intent.metadata.receipt_phone && intent.metadata.receipt_phone !== phone) {
-        return json({ error: 'A text receipt has already been requested for this invoice.' }, 409);
-      }
+      if (intent.metadata.receipt_phone !== phone) return json({ error: 'The receipt number was not chosen before payment.' }, 403);
       if (intent.metadata.receipt_sent === '1') return json({ sent: true });
       const quoApiKey = Netlify.env.get('QUO_API_KEY') || '';
       const from = (Netlify.env.get('QUO_FROM_NUMBER') || '').replace(/[^+\d]/g, '');

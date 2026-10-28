@@ -40,6 +40,38 @@ async function stripeRequest(path: string, secret: string, body: URLSearchParams
   return data;
 }
 
+async function recentInvoices(secret: string) {
+  const invoices: Array<Record<string, unknown>> = [];
+  let cursor = '';
+  for (let page = 0; page < 3 && invoices.length < 8; page += 1) {
+    const params = new URLSearchParams({ limit: '100' });
+    if (cursor) params.set('starting_after', cursor);
+    const response = await fetch(`${STRIPE_API}/payment_intents?${params}`, {
+      headers: { authorization: `Bearer ${secret}` }
+    });
+    if (!response.ok) throw new Error('Stripe invoice history is unavailable.');
+    const result = await response.json();
+    const intents = Array.isArray(result.data) ? result.data : [];
+    for (const intent of intents) {
+      if (intent.metadata?.launchpoint_invoice !== '1' || !/^pi_[A-Za-z0-9_]+$/.test(intent.id || '')) continue;
+      invoices.push({
+        id: intent.id,
+        reference: intent.metadata.reference || '',
+        company: intent.metadata.company || '',
+        description: intent.metadata.service_description || '',
+        amount: intent.amount,
+        status: intent.status,
+        created: intent.created,
+        sent: intent.metadata.sent_via_quo === '1'
+      });
+      if (invoices.length === 8) break;
+    }
+    if (!result.has_more || !intents.length) break;
+    cursor = intents[intents.length - 1].id;
+  }
+  return invoices;
+}
+
 function cleanText(value: unknown, maximum: number) {
   return typeof value === 'string' ? value.trim().replace(/\s+/g, ' ').slice(0, maximum) : '';
 }
@@ -57,7 +89,10 @@ export default async (request: Request) => {
     const quoFromNumber = (Netlify.env.get('QUO_FROM_NUMBER') || '').replace(/[^+\d]/g, '');
 
     if (request.method === 'GET') {
-      return json({ stripeConnected: Boolean(stripeSecret), quoConnected: Boolean(quoApiKey && validPhone(quoFromNumber)) });
+      const base = { stripeConnected: Boolean(stripeSecret), quoConnected: Boolean(quoApiKey && validPhone(quoFromNumber)) };
+      if (!stripeSecret) return json({ ...base, recentInvoices: [] });
+      try { return json({ ...base, recentInvoices: await recentInvoices(stripeSecret) }); }
+      catch { return json({ ...base, recentInvoices: [], historyError: 'Stripe invoice history could not load.' }); }
     }
     if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
 
@@ -116,6 +151,10 @@ export default async (request: Request) => {
         }, 502);
       }
       sent = true;
+      try {
+        await stripeRequest(`/payment_intents/${encodeURIComponent(paymentIntent.id)}`, stripeSecret,
+          new URLSearchParams({ 'metadata[sent_via_quo]': '1' }), `${requestId}-quo-sent`);
+      } catch { /* A delivered message must not be reported as failed because status tracking failed. */ }
     }
 
     return json({ url, paymentIntentId: paymentIntent.id, reference, sent });

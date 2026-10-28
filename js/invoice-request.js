@@ -146,6 +146,7 @@ async function completePayment() {
     if (submitted.error) throw new Error(submitted.error.message);
     if (receipt.method === 'email') await requestInvoice('POST', { action: 'set-email', email: receipt.contact });
     if (receipt.method === 'phone') {
+      await requestInvoice('POST', { action: 'set-phone', phone: receipt.contact });
       pendingPhone = receipt.contact;
       try { sessionStorage.setItem(`invoice-receipt:${invoiceId}`, receipt.contact); } catch { /* Payment must not depend on browser storage. */ }
     }

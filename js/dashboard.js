@@ -10,6 +10,8 @@
   let unsubscribeRealtime = null;
   let latestPaymentUrl = '';
   let paymentStatusLoaded = false;
+  let invoiceHistory = [];
+  let invoiceHistoryError = '';
 
   const headings = {
     overview: ['LaunchPoint / overview', 'The work at a glance.', 'Clients, conversations, and the next decisions in one place.'],
@@ -146,27 +148,22 @@
     renderMetrics(); renderAttention(); renderClients(); renderMessages();
   }
 
-  function recentPayments() {
-    try { return JSON.parse(localStorage.getItem('launchpoint-payment-links') || '[]'); }
-    catch (_) { return []; }
-  }
-
   function saveRecentPayment(payment) {
-    const items = [payment, ...recentPayments().filter((item) => item.url !== payment.url)].slice(0, 8);
-    localStorage.setItem('launchpoint-payment-links', JSON.stringify(items));
+    invoiceHistory = [payment, ...invoiceHistory.filter((item) => item.url !== payment.url)].slice(0, 8);
+    invoiceHistoryError = '';
     renderRecentPayments();
   }
 
   function renderRecentPayments() {
     const target = $('#recent-payment-list');
-    const items = recentPayments();
+    const items = invoiceHistory;
     target.innerHTML = items.length ? items.map((item) => `
       <article class="recent-payment-item">
         <div><strong>${escapeHtml(item.company)}</strong><span>${escapeHtml(item.description)}</span></div>
         <b>${escapeHtml(item.amount)}</b>
-        <time>${escapeHtml(Portal.formatTime(item.createdAt))}</time>
+        <time>${escapeHtml(Portal.formatTime(item.createdAt))} · ${escapeHtml(item.status || 'Open')}</time>
         <button type="button" data-copy-payment="${escapeHtml(item.url)}">Copy</button>
-      </article>`).join('') : '<div class="payment-empty"><span>↗</span><p>Your newest invoice links will stay here for quick copying.</p></div>';
+      </article>`).join('') : `<div class="payment-empty"><span>↗</span><p>${escapeHtml(invoiceHistoryError || 'Your newest invoices will appear here after they are created.')}</p></div>`;
   }
 
   function setIntegrationStatus(id, name, connected) {
@@ -181,6 +178,16 @@
       const status = await Portal.getPaymentIntegrationStatus();
       setIntegrationStatus('#stripe-status', 'Stripe', status.stripeConnected);
       setIntegrationStatus('#quo-status', 'Quo', status.quoConnected);
+      invoiceHistoryError = status.historyError || '';
+      invoiceHistory = (status.recentInvoices || []).map((item) => ({
+        company: item.company,
+        description: item.description,
+        amount: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.amount / 100),
+        createdAt: new Date(item.created * 1000).toISOString(),
+        status: item.status === 'succeeded' ? 'Paid' : item.status === 'processing' ? 'Processing' : item.status === 'canceled' ? 'Canceled' : 'Open',
+        url: `${location.origin}/invoice/${encodeURIComponent(item.id)}`
+      }));
+      renderRecentPayments();
       paymentStatusLoaded = true;
     } catch (error) {
       setIntegrationStatus('#stripe-status', 'Stripe', false);

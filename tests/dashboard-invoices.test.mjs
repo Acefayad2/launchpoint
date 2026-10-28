@@ -50,6 +50,7 @@ test('dashboard generates a fixed-price LaunchPoint invoice URL and texts that U
       intentBody = options.body;
       return Response.json({ id: intentId });
     }
+    if (url === `https://api.stripe.com/v1/payment_intents/${intentId}`) return Response.json({ id: intentId });
     if (url === 'https://api.quo.com/v1/messages') {
       textMessage = JSON.parse(options.body);
       return Response.json({ id: 'message_1' });
@@ -70,6 +71,28 @@ test('dashboard generates a fixed-price LaunchPoint invoice URL and texts that U
   assert.equal(intentBody.get('automatic_payment_methods[enabled]'), 'true');
   assert.match(textMessage.content, /mylaunch\.dev\/invoice\/pi_testinvoice123456789/);
   assert.deepEqual(textMessage.to, ['+14435550198']);
+});
+
+test('dashboard invoice history is returned from Stripe without leaking client secrets', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async (url) => {
+    const admin = adminFetch(url);
+    if (admin) return admin;
+    if (url.startsWith('https://api.stripe.com/v1/payment_intents?')) return Response.json({
+      has_more: false,
+      data: [stripeInvoice(), { id: 'pi_other123456789', metadata: {} }]
+    });
+    throw new Error(`Unexpected request: ${url}`);
+  };
+  const response = await createInvoice(new Request('https://mylaunch.dev/api/payment-links', {
+    headers: { authorization: 'Bearer admin-token' }
+  }));
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.recentInvoices.length, 1);
+  assert.equal(result.recentInvoices[0].id, intentId);
+  assert.equal(JSON.stringify(result).includes('secret_example'), false);
 });
 
 test('client invoice loads only a server-created Stripe PaymentIntent', async (t) => {
@@ -123,13 +146,15 @@ test('optional email receipt is set before payment; phone receipt requires verif
   t.after(() => { globalThis.fetch = originalFetch; });
   let completed = false;
   let emailBody;
+  let phoneBody;
   let textMessage;
   globalThis.fetch = async (url, options = {}) => {
     if (url === `https://api.stripe.com/v1/payment_intents/${intentId}` && !options.body) {
-      return Response.json(stripeInvoice(completed ? { status: 'succeeded', amount_received: 125000 } : {}));
+      return Response.json(stripeInvoice(completed ? { status: 'succeeded', amount_received: 125000, metadata: { ...stripeInvoice().metadata, receipt_phone: '+14435550198' } } : {}));
     }
     if (url === `https://api.stripe.com/v1/payment_intents/${intentId}`) {
       if (options.body.has('receipt_email')) emailBody = options.body;
+      if (options.body.has('metadata[receipt_phone]')) phoneBody = options.body;
       return Response.json(stripeInvoice());
     }
     if (url === 'https://api.quo.com/v1/messages') {
@@ -144,6 +169,12 @@ test('optional email receipt is set before payment; phone receipt requires verif
   }));
   assert.equal(email.status, 200);
   assert.equal(emailBody.get('receipt_email'), 'receipt@example.com');
+  const choosePhone = await invoiceRequest(new Request('https://mylaunch.dev/api/invoice-request', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ id: intentId, action: 'set-phone', phone: '+14435550198' })
+  }));
+  assert.equal(choosePhone.status, 200);
+  assert.equal(phoneBody.get('metadata[receipt_phone]'), '+14435550198');
   const pendingText = await invoiceRequest(new Request('https://mylaunch.dev/api/invoice-request', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ id: intentId, action: 'send-phone-receipt', phone: '+14435550198' })
@@ -157,4 +188,9 @@ test('optional email receipt is set before payment; phone receipt requires verif
   }));
   assert.equal(paidText.status, 200);
   assert.match(textMessage.content, /\$1,250\.00 paid/);
+  const wrongNumber = await invoiceRequest(new Request('https://mylaunch.dev/api/invoice-request', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ id: intentId, action: 'send-phone-receipt', phone: '+14435550199' })
+  }));
+  assert.equal(wrongNumber.status, 403);
 });
