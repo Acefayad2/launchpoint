@@ -79,7 +79,6 @@ test('declines remain retryable and reuse the existing PaymentIntent', async () 
 test('unverified redirected payments block another charge', async () => {
   const ui = await setup({ redirectResult: { error: { message: 'Network unavailable' } } });
   assert.equal(ui.get('#pay-button').disabled, true);
-  assert.equal(ui.get('#hosted-checkout').disabled, true);
   assert.match(ui.get('#form-status').textContent, /Do not pay again/);
   assert.equal(ui.intentRequests(), 0);
 });

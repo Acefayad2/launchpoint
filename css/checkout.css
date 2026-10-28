@@ -51,8 +51,6 @@ form h2 { font-size: .97rem; }
 .is-paying .pay-spinner { display: block; animation: payment-spin 750ms linear infinite; }
 .is-paying .pay-arrow { display: none; }
 .is-paying #express-checkout-element { pointer-events: none; opacity: .6; }
-.hosted-checkout { justify-self: center; border: 0; background: none; font: inherit; font-size: .68rem; color: #6a6963; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; padding: 7px; }
-.hosted-checkout:hover { color: #a9440d; }
 .form-status:empty { display: none; }
 .form-status:not(:empty) { padding: 12px; background: #f9eeeb; border-radius: 10px; animation: reveal-fields 180ms ease-out; }
 .wallet-copy { font-size: .67rem; margin: 21px 0; }
