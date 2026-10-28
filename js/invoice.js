@@ -4,7 +4,6 @@ const STRIPE_PUBLISHABLE_KEY = 'pk_live_51UTj2bK6F4IOv7wYekbcGW5wldnACFlgORhTakF
 const form = document.querySelector('#payment-form');
 const payButton = document.querySelector('#pay-button');
 const payLabel = document.querySelector('#pay-label');
-const hostedButton = document.querySelector('#hosted-checkout');
 const cardStage = document.querySelector('#card-stage');
 const cardFeedback = document.querySelector('#card-feedback');
 let stripe;
@@ -106,7 +105,6 @@ function setPaying(value) {
   form.classList.toggle('is-paying', value);
   form.setAttribute('aria-busy', String(value));
   payButton.disabled = value || !paymentReady;
-  hostedButton.disabled = value;
   // Retries reuse the same intent, including its original receipt preference.
   const receiptLocked = value || Boolean(pendingAttempt);
   sendReceipt.disabled = receiptLocked;
@@ -114,30 +112,6 @@ function setPaying(value) {
   receiptContact.disabled = receiptLocked || !sendReceipt.checked;
   payLabel.textContent = value ? 'Processing securely…' : 'Pay $4,500.00';
 }
-
-hostedButton.addEventListener('click', async () => {
-  if (paying) return;
-  const values = validate();
-  if (!values) return;
-  setPaying(true);
-  hostedButton.textContent = 'Opening secure checkout…';
-  status.textContent = '';
-
-  try {
-    const result = await postJson('/api/invoice-checkout', {
-      invoiceId: INVOICE_ID,
-      ...values,
-      preferredMethod: 'card',
-      requestId: crypto.randomUUID()
-    });
-    if (!result.url) throw new Error('Checkout could not be started. Please try again.');
-    window.location.assign(result.url);
-  } catch (error) {
-    status.textContent = error instanceof Error ? error.message : 'Checkout could not be started. Please try again.';
-    setPaying(false);
-    hostedButton.textContent = 'Open Stripe-hosted checkout ↗';
-  }
-});
 
 function showResult(paymentStatus, receiptWarning = '') {
   const succeeded = paymentStatus === 'succeeded';
@@ -231,7 +205,7 @@ form.addEventListener('submit', (event) => {
 async function initializeExpressCheckout() {
   if (!window.Stripe) {
     walletUnavailable.hidden = false;
-    document.querySelector('#payment-loading').textContent = 'Secure fields could not load. Use Stripe-hosted checkout below.';
+    document.querySelector('#payment-loading').textContent = 'Secure payment fields could not load. Refresh this page to try again.';
     return;
   }
 
@@ -321,5 +295,5 @@ async function initializeExpressCheckout() {
 initializeExpressCheckout().catch(() => {
   walletUnavailable.hidden = false;
   setPaying(false);
-  document.querySelector('#payment-loading').textContent = 'Secure fields could not load. Use Stripe-hosted checkout below.';
+  document.querySelector('#payment-loading').textContent = 'Secure payment fields could not load. Refresh this page to try again.';
 });
