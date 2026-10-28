@@ -55,16 +55,32 @@ async function setup({ confirmation, submitError, phoneReceipt = false, receiptF
   return { nodes, get, paymentElement: stripeElements.get('payment'), submit: () => stripeElements.get('expressCheckout').events.confirm(), intentRequests: () => intentRequests, confirms: () => confirms, receiptRequests: () => receiptRequests };
 }
 
-test('decorative masked number responds only to incomplete card entry', async () => {
+test('card preview shows secure entry state without mirroring digits', async () => {
   const ui = await setup();
   const stage = ui.get('#card-stage');
+  ui.paymentElement.events.focus();
+  assert.equal(stage.classList.contains('is-card-entry'), true);
+  assert.equal(ui.get('#card-entry-label').textContent, 'Secure card entry in progress');
+  ui.paymentElement.events.blur();
+  assert.equal(stage.classList.contains('is-card-entry'), false);
   ui.paymentElement.events.change({ value: { type: 'card' }, empty: false, complete: false });
   assert.equal(stage.classList.contains('is-card-entry'), true);
+  assert.equal(ui.get('#card-entry-label').textContent, 'Secure card entry in progress');
   ui.paymentElement.events.change({ value: { type: 'card' }, empty: false, complete: true });
   assert.equal(stage.classList.contains('is-card-entry'), false);
   assert.equal(stage.classList.contains('is-complete'), true);
+  assert.equal(ui.get('#card-entry-label').textContent, 'Card details ready');
   ui.paymentElement.events.change({ value: { type: 'klarna' }, empty: false, complete: false });
   assert.equal(stage.classList.contains('is-card-entry'), false);
+  assert.equal(ui.get('#card-entry-label').textContent, 'Payment details stay protected');
+});
+
+test('invoice card templates do not display a fake card number', async () => {
+  for (const page of ['invoice-amg.html', 'invoice-request.html']) {
+    const markup = await readFile(new URL(`../${page}`, import.meta.url), 'utf8');
+    assert.match(markup, /card-entry-indicator/);
+    assert.doesNotMatch(markup, /card-dots|••••/);
+  }
 });
 
 test('invalid Stripe fields do not create a payment or show success', async () => {

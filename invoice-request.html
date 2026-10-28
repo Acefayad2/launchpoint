@@ -7,7 +7,7 @@
   <title>Invoice | LaunchPoint</title>
   <link rel="icon" type="image/png" href="/assets/launchpoint-mark-v2.png">
   <link rel="stylesheet" href="/css/invoice.css?v=20261028-5">
-  <link rel="stylesheet" href="/css/checkout.css?v=20261028-4">
+  <link rel="stylesheet" href="/css/checkout.css?v=20261028-5">
 </head>
 <body>
   <header class="site-header">
@@ -23,7 +23,7 @@
 
       <div class="card-stage" id="card-stage">
         <div class="project-card" aria-hidden="true">
-          <div class="project-card-face project-card-front"><div class="project-card-top"><span id="card-company"></span><span class="card-contactless">)))</span></div><span class="card-chip"></span><div class="card-dots"><span>••••</span><span>••••</span><span>••••</span><span>••••</span></div><div class="project-card-bottom"><span id="card-method">Secure payment</span></div></div>
+          <div class="project-card-face project-card-front"><div class="project-card-top"><span id="card-company"></span><span class="card-contactless">)))</span></div><span class="card-chip"></span><div class="card-entry-indicator"><span class="entry-lock" aria-hidden="true">◆</span><span id="card-entry-label">Card details stay protected</span><span class="entry-signal" aria-hidden="true"><i></i><i></i><i></i></span></div><div class="project-card-bottom"><span id="card-method">Secure payment</span></div></div>
           <div class="project-card-face project-card-back"><div class="card-stripe"></div><strong>Your details stay protected.</strong><p>Payment information is entered directly into Stripe’s secure fields.</p><span id="card-back-company"></span></div>
         </div>
         <div class="card-caption"><span id="card-feedback">Your project. One secure payment.</span><button id="card-flip" type="button" aria-pressed="false" aria-describedby="card-security-description">How it’s protected <span aria-hidden="true">↗</span></button></div>
@@ -54,6 +54,6 @@
   </main>
   <footer><span>LaunchPoint</span><span>Questions? Visit <a href="https://mylaunch.dev">mylaunch.dev</a></span></footer>
   <script src="https://js.stripe.com/v3/"></script>
-  <script src="/js/invoice-request.js?v=20261028-2" defer></script>
+  <script src="/js/invoice-request.js?v=20261028-3" defer></script>
 </body>
 </html>
