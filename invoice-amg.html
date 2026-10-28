@@ -7,7 +7,8 @@
   <meta name="theme-color" content="#f2f3f5">
   <title>AMG invoice | LaunchPoint</title>
   <link rel="icon" type="image/png" href="/assets/launchpoint-mark-v2.png">
-  <link rel="stylesheet" href="/css/invoice.css?v=20261028-3">
+  <link rel="stylesheet" href="/css/invoice.css?v=20261028-5">
+  <link rel="stylesheet" href="/css/checkout.css?v=20261028-1">
 </head>
 <body>
   <header class="site-header">
@@ -20,15 +21,32 @@
     </div>
   </header>
 
-  <main class="invoice-shell">
+  <nav class="checkout-progress" aria-label="Checkout progress"><span class="step-done">01 <span>Review invoice</span></span><span class="step-current" aria-current="step">02 <span>Secure payment</span></span><span>03 <span>Confirmation</span></span></nav>
+  <main class="invoice-shell" id="main-content">
     <article class="invoice-paper" aria-labelledby="invoice-title">
       <div class="invoice-heading">
         <div>
-          <p class="kicker">Website and communications systems</p>
-          <h1 id="invoice-title">AMG Website and CRM Invoice</h1>
+          <p class="kicker">Made for your next chapter</p>
+          <h1 id="invoice-title">AMG Website<br>and CRM Invoice</h1>
           <p class="invoice-summary">Website, domain, SMS administration and Supabase setup.</p>
         </div>
         <span class="invoice-status">Open</span>
+      </div>
+
+      <div class="card-stage" id="card-stage">
+        <div class="project-card" id="project-card" aria-hidden="true">
+          <div class="project-card-face project-card-front">
+            <div class="project-card-top"><span>LaunchPoint</span><span class="card-contactless">)))</span></div>
+            <span class="card-chip"></span>
+            <div class="card-dots">•••• &nbsp; •••• &nbsp; •••• &nbsp; ••••</div>
+            <div class="project-card-bottom"><span>AMG · PROJECT SERVICES</span><span id="card-method">Secure payment</span></div>
+          </div>
+          <div class="project-card-face project-card-back">
+            <div class="card-stripe"></div><strong>Your details stay protected.</strong><p>Payment information is entered directly into Stripe’s secure fields.</p><span>LaunchPoint · Secure checkout</span>
+          </div>
+        </div>
+        <div class="card-caption"><span id="card-feedback">Your project. One secure payment.</span><button id="card-flip" type="button" aria-pressed="false" aria-describedby="card-security-description">How it’s protected <span aria-hidden="true">↗</span></button></div>
+        <span id="card-security-description" hidden>Payment information is entered directly into Stripe’s secure fields.</span>
       </div>
 
       <dl class="invoice-parties">
@@ -120,18 +138,18 @@
 
     <aside class="payment-panel" aria-labelledby="payment-title">
       <div class="payment-topline">
-        <span>Amount due</span>
+        <span>Complete your payment</span>
         <span class="secure-label">Secure</span>
       </div>
       <p class="payment-amount">$4,500.00</p>
-      <p class="payment-reference">Invoice LP-AMG-20261027-01</p>
+      <p class="payment-reference">USD · One-time project payment</p>
 
       <div class="notice notice-canceled" id="canceled-notice" hidden>
         Checkout was canceled. No payment was taken.
       </div>
 
       <form id="payment-form" novalidate>
-        <h2 id="payment-title">Choose how to pay</h2>
+        <h2 id="payment-title">Payment details</h2>
         <div class="receipt-preference">
           <label class="receipt-toggle" for="send-receipt">
             <span>
@@ -161,19 +179,15 @@
           <div id="express-checkout-element" aria-label="Express wallet payment options"></div>
           <p class="wallet-unavailable" id="wallet-unavailable" hidden>Apple Pay or another wallet is not available on this device. Use all payment options below.</p>
           <div class="payment-divider"><span>or</span></div>
-          <button class="payment-option payment-option-card" type="submit" data-payment-method="card">
-            <span class="card-label">
-              <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22"><path d="M3 6.75A1.75 1.75 0 0 1 4.75 5h14.5A1.75 1.75 0 0 1 21 6.75v10.5A1.75 1.75 0 0 1 19.25 19H4.75A1.75 1.75 0 0 1 3 17.25V6.75Zm1.5 1.5h15v-1.5a.25.25 0 0 0-.25-.25H4.75a.25.25 0 0 0-.25.25v1.5Zm0 2v7a.25.25 0 0 0 .25.25h14.5a.25.25 0 0 0 .25-.25v-7h-15Zm2 4.25h4v1.5h-4v-1.5Z"/></svg>
-              View all payment options
-            </span>
-            <span aria-hidden="true">→</span>
-          </button>
-          <p class="all-methods-note">Card, Cash App, Klarna, Amazon Pay, bank and more</p>
+          <div id="payment-element" aria-label="Secure payment details"></div>
+          <p id="payment-loading" class="payment-loading" role="status">Loading secure payment options…</p>
         </fieldset>
+        <button class="payment-option pay-button" type="submit" id="pay-button" disabled><span id="pay-label">Pay $4,500.00</span><span class="pay-arrow" aria-hidden="true">↗</span><span class="pay-spinner" aria-hidden="true"></span></button>
         <div class="form-status" id="form-status" role="status" aria-live="polite"></div>
+        <button class="hosted-checkout" type="button" id="hosted-checkout">Open Stripe-hosted checkout <span aria-hidden="true">↗</span></button>
       </form>
 
-      <p class="wallet-copy">Apple Pay is offered through Stripe on supported Apple devices. Other payment methods open in secure Stripe Checkout. Receipt delivery is optional.</p>
+      <p class="wallet-copy">Your payment is processed securely by Stripe. Some methods open their provider for authorization. Receipts are optional.</p>
       <div class="payment-trust" aria-label="Payment protections">
         <span>Stripe secured</span>
         <span>Encrypted checkout</span>
@@ -187,6 +201,6 @@
   </footer>
 
   <script src="https://js.stripe.com/v3/"></script>
-  <script src="/js/invoice.js?v=20261028-4" defer></script>
+  <script src="/js/invoice.js?v=20261028-5" defer></script>
 </body>
 </html>
