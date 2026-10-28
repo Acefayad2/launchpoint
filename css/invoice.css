@@ -38,7 +38,7 @@ footer {
 }
 
 .site-header {
-  min-height: 86px;
+  min-height: 118px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -46,12 +46,24 @@ footer {
 }
 
 .brand {
-  width: 185px;
-  display: inline-flex;
+  position: relative;
+  width: 144px;
+  height: 94px;
+  display: block;
+  overflow: hidden;
   text-decoration: none;
 }
 
-.brand img { width: 100%; height: auto; display: block; }
+.brand img {
+  position: absolute;
+  top: -23px;
+  left: 50%;
+  width: 180px;
+  max-width: none;
+  height: auto;
+  display: block;
+  transform: translateX(-50%);
+}
 
 .header-meta {
   display: grid;
@@ -450,8 +462,9 @@ footer a { color: var(--ink); font-weight: 700; }
   .invoice-shell,
   footer { width: min(100% - 28px, 1260px); }
 
-  .site-header { min-height: 74px; }
-  .brand { width: 150px; }
+  .site-header { min-height: 100px; }
+  .brand { width: 120px; height: 80px; }
+  .brand img { top: -20px; width: 156px; }
   .header-meta strong { font-size: .72rem; }
   .invoice-shell { padding-top: .6rem; gap: 1rem; }
   .payment-panel,
