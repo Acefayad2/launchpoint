@@ -82,24 +82,40 @@ test('client invoice loads only a server-created Stripe PaymentIntent', async (t
     id: intentId, reference, company: 'Northline Wellness',
     description: 'Website strategy deposit', amount: 125000, currency: 'usd',
     status: 'requires_payment_method', created: 1793220000,
-    clientSecret: `${intentId}_secret_example`
+    clientSecret: `${intentId}_secret_example`, card: null
   });
   globalThis.fetch = async () => Response.json(stripeInvoice({ metadata: { company: 'Unrelated' } }));
   const unrelated = await invoiceRequest(new Request(`https://mylaunch.dev/api/invoice-request?id=${intentId}`));
   assert.equal(unrelated.status, 404);
 });
 
-test('paid invoices reveal no client secret and cannot be paid again', async (t) => {
+test('paid invoices reveal verified card summary but no client secret, and cannot be paid again', async (t) => {
   const originalFetch = globalThis.fetch;
   t.after(() => { globalThis.fetch = originalFetch; });
-  globalThis.fetch = async () => Response.json(stripeInvoice({ status: 'succeeded', amount_received: 125000 }));
+  globalThis.fetch = async (url) => Response.json(stripeInvoice({
+    status: 'succeeded', amount_received: 125000,
+    ...(url.includes('expand%5B%5D=latest_charge') ? { latest_charge: { payment_method_details: { card: { brand: 'visa', last4: '4242' } } } } : {})
+  }));
   const response = await invoiceRequest(new Request(`https://mylaunch.dev/api/invoice-request?id=${intentId}`));
-  assert.equal((await response.json()).clientSecret, null);
+  const paid = await response.json();
+  assert.equal(paid.clientSecret, null);
+  assert.deepEqual(paid.card, { brand: 'visa', last4: '4242' });
   const email = await invoiceRequest(new Request('https://mylaunch.dev/api/invoice-request', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ id: intentId, action: 'set-email', email: 'receipt@example.com' })
   }));
   assert.equal(email.status, 409);
+});
+
+test('wallet token last four is not presented as the underlying card number', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => Response.json(stripeInvoice({
+    status: 'succeeded', amount_received: 125000,
+    latest_charge: { payment_method_details: { card: { brand: 'visa', last4: '1234', wallet: { type: 'apple_pay' } } } }
+  }));
+  const response = await invoiceRequest(new Request(`https://mylaunch.dev/api/invoice-request?id=${intentId}`));
+  assert.equal((await response.json()).card, null);
 });
 
 test('optional email receipt is set before payment; phone receipt requires verified success', async (t) => {

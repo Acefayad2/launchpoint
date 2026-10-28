@@ -9,14 +9,14 @@ function element() {
   const classes = new Set();
   return {
     hidden: false, checked: false, value: '', textContent: '', events: {}, children: [],
-    classList: { add: (v) => classes.add(v), remove: (v) => classes.delete(v), contains: (v) => classes.has(v), toggle(v, force) { const add = force ?? !classes.has(v); if (add) classes.add(v); else classes.delete(v); return add; } },
+    classList: { add: (...values) => values.forEach((v) => classes.add(v)), remove: (...values) => values.forEach((v) => classes.delete(v)), contains: (v) => classes.has(v), toggle(v, force) { const add = force ?? !classes.has(v); if (add) classes.add(v); else classes.delete(v); return add; } },
     setAttribute() {}, removeAttribute() {}, focus() {}, append(child) { this.children.push(child); },
     addEventListener(name, callback) { this.events[name] = callback; },
     replaceWith(next) { this.replacement = next; }
   };
 }
 
-async function setup({ confirmation, submitError, phoneReceipt = false, receiptFailure = false, redirectResult } = {}) {
+async function setup({ confirmation, submitError, phoneReceipt = false, receiptFailure = false, redirectResult, paidCard = null } = {}) {
   const nodes = new Map();
   const get = (selector) => { if (!nodes.has(selector)) nodes.set(selector, element()); return nodes.get(selector); };
   const radio = { ...element(), checked: true, value: phoneReceipt ? 'phone' : 'email' };
@@ -42,6 +42,7 @@ async function setup({ confirmation, submitError, phoneReceipt = false, receiptF
     sessionStorage: { getItem: (key) => storage.get(key), setItem: (key, value) => storage.set(key, value), removeItem: (key) => storage.delete(key) },
     URLSearchParams, crypto: { randomUUID: () => '550e8400-e29b-41d4-a716-446655440010' },
     fetch: async (url, options) => {
+      if (options === undefined) return { ok: true, json: async () => ({ card: paidCard }) };
       const body = JSON.parse(options.body);
       if (body.action === 'send-phone-receipt') { receiptRequests++; return { ok: !receiptFailure, json: async () => ({ error: 'Receipt delivery failed.' }) }; }
       intentRequests++;
@@ -73,6 +74,15 @@ test('card preview shows secure entry state without mirroring digits', async () 
   ui.paymentElement.events.change({ value: { type: 'klarna' }, empty: false, complete: false });
   assert.equal(stage.classList.contains('is-card-entry'), false);
   assert.equal(ui.get('#card-entry-label').textContent, 'Payment details stay protected');
+});
+
+test('paid confirmation shows only Stripe-verified brand and last four on the card', async () => {
+  const ui = await setup({ paidCard: { brand: 'visa', last4: '4242' } });
+  assert.equal(ui.get('#card-entry-label').textContent, '');
+  await ui.submit();
+  assert.equal(ui.get('#card-entry-label').textContent, '•••• 4242');
+  assert.equal(ui.get('#card-method').textContent, 'Visa');
+  assert.equal(ui.get('#card-stage').classList.contains('is-paid'), true);
 });
 
 test('invoice card templates do not display a fake card number', async () => {

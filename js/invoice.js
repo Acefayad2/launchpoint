@@ -113,12 +113,36 @@ function setPaying(value) {
   payLabel.textContent = value ? 'Processing securely…' : 'Pay $4,500.00';
 }
 
-function showResult(paymentStatus, receiptWarning = '') {
+function showPaidCard(card) {
+  if (!card || !/^[0-9]{4}$/.test(card.last4) || !/^[a-z_]+$/.test(card.brand)) return '';
+  const names = { amex: 'American Express', diners: 'Diners Club', discover: 'Discover', jcb: 'JCB', mastercard: 'Mastercard', unionpay: 'UnionPay', visa: 'Visa' };
+  const brand = names[card.brand] || 'Card';
+  cardStage.classList.remove('is-card-entry', 'is-focused');
+  cardStage.classList.add('is-complete', 'is-paid');
+  document.querySelector('#card-entry-label').textContent = `•••• ${card.last4}`;
+  document.querySelector('#card-method').textContent = brand;
+  cardFeedback.textContent = `Paid with ${brand} ending in ${card.last4}.`;
+  return `Paid with ${brand} ending in ${card.last4}.`;
+}
+
+async function loadPaidCard(paymentIntentId) {
+  try {
+    const response = await fetch(`/api/invoice-wallet-intent?invoiceId=${encodeURIComponent(INVOICE_ID)}&paymentIntentId=${encodeURIComponent(paymentIntentId)}`);
+    if (!response.ok) return null;
+    return (await response.json()).card || null;
+  } catch { return null; }
+}
+
+function showResult(paymentStatus, receiptWarning = '', card = null) {
   const succeeded = paymentStatus === 'succeeded';
   const result = document.createElement('section');
   result.className = 'payment-result';
   result.setAttribute('role', 'status');
   result.innerHTML = `<div class="result-mark" aria-hidden="true">${succeeded ? '✓' : '…'}</div><h2>${succeeded ? 'Payment received.' : 'Payment processing.'}</h2><p>${succeeded ? 'Thank you. Your $4,500.00 payment for invoice LP-AMG-20261027-01 is complete.' : 'Your payment has been submitted. Your bank or payment provider is still processing it. Please do not pay again.'}</p><a href="/">Return to LaunchPoint ↗</a>`;
+  if (succeeded) {
+    const paidWith = showPaidCard(card);
+    if (paidWith) { const note = document.createElement('p'); note.textContent = paidWith; result.append(note); }
+  }
   if (receiptWarning) {
     const warning = document.createElement('p');
     warning.textContent = receiptWarning;
@@ -190,7 +214,8 @@ async function completePayment() {
 
     const receiptWarning = await sendPhoneReceipt(confirmation.paymentIntent, pendingAttempt);
     try { sessionStorage.removeItem(`receipt:${confirmation.paymentIntent.id}`); } catch { /* Optional storage. */ }
-    showResult(paymentStatus, receiptWarning);
+    const card = paymentStatus === 'succeeded' ? await loadPaidCard(confirmation.paymentIntent.id) : null;
+    showResult(paymentStatus, receiptWarning, card);
   } catch (error) {
     status.textContent = error instanceof Error ? error.message : 'Payment could not be completed. Please try again.';
     setPaying(false);
@@ -230,7 +255,8 @@ async function initializeExpressCheckout() {
       } catch { /* Receipt preference may be unavailable in private browsing. */ }
       const receiptWarning = await sendPhoneReceipt(result.paymentIntent, savedReceipt);
       history.replaceState(null, '', window.location.pathname);
-      showResult(result.paymentIntent.status, receiptWarning);
+      const card = result.paymentIntent.status === 'succeeded' ? await loadPaidCard(result.paymentIntent.id) : null;
+      showResult(result.paymentIntent.status, receiptWarning, card);
       return;
     }
     if (!['requires_payment_method', 'canceled'].includes(result.paymentIntent.status)) {

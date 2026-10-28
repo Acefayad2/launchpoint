@@ -77,6 +77,8 @@ form h2 { font-size: .97rem; }
 .card-stage.is-card-entry .entry-signal i:nth-child(3) { animation-delay: 300ms; }
 .card-stage.is-complete .card-entry-indicator { color: #41664d; }
 .card-stage.is-complete .entry-lock, .card-stage.is-complete .entry-signal i { background: #41664d; opacity: 1; }
+.card-stage.is-paid .card-entry-indicator { font-size: 1.05rem; font-variant-numeric: tabular-nums; letter-spacing: .12em; }
+.card-stage.is-paid .entry-signal { display: none; }
 .project-card-bottom { display: flex; justify-content: flex-end; margin-top: 19px; font-size: .51rem; font-weight: 650; letter-spacing: .055em; }
 .project-card-back { transform: rotateY(180deg); background: linear-gradient(120deg, #efede6, #f7f1e7); }
 .card-stripe { height: 32px; background: #34342f; margin: -3px -23px 18px; }

@@ -130,3 +130,27 @@ test('does not send a phone receipt for an uncompleted payment', async (t) => {
   assert.equal(response.status, 409);
   assert.match((await response.json()).error, /not been completed/i);
 });
+
+test('returns only verified post-payment card brand and last four', async (t) => {
+  setNetlifyEnv({ STRIPE_SECRET_KEY: 'rk_live_example' });
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async (url) => {
+    assert.match(url, /expand%5B%5D=latest_charge/);
+    return Response.json({ status: 'succeeded', amount_received: 450000, currency: 'usd',
+      metadata: { invoice_id: 'LP-AMG-20261027-01' },
+      latest_charge: { payment_method_details: { card: { brand: 'mastercard', last4: '4444' } } } });
+  };
+  const response = await handler(new Request('https://mylaunch.dev/api/invoice-wallet-intent?invoiceId=LP-AMG-20261027-01&paymentIntentId=pi_paid123', { method: 'GET' }));
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { card: { brand: 'mastercard', last4: '4444' } });
+});
+
+test('does not reveal card details before the AMG payment succeeds', async (t) => {
+  setNetlifyEnv({ STRIPE_SECRET_KEY: 'rk_live_example' });
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => Response.json({ status: 'processing', amount_received: 0, currency: 'usd', metadata: { invoice_id: 'LP-AMG-20261027-01' } });
+  const response = await handler(new Request('https://mylaunch.dev/api/invoice-wallet-intent?invoiceId=LP-AMG-20261027-01&paymentIntentId=pi_processing123', { method: 'GET' }));
+  assert.equal(response.status, 409);
+});
