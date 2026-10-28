@@ -63,6 +63,7 @@ test('creates a fixed-price single-use Stripe Payment Link for the AMG invoice',
       name: 'Amina Cole',
       email: 'amina@example.com',
       invoiceId: 'LP-AMG-20261027-01',
+      preferredMethod: 'apple_pay',
       amount: 1,
       requestId: '550e8400-e29b-41d4-a716-446655440000'
     })
@@ -79,5 +80,7 @@ test('creates a fixed-price single-use Stripe Payment Link for the AMG invoice',
   assert.equal(linkBody.get('line_items[0][price]'), 'price_test_123');
   assert.equal(linkBody.get('restrictions[completed_sessions][limit]'), '1');
   assert.equal(linkBody.get('metadata[invoice_id]'), 'LP-AMG-20261027-01');
+  assert.equal(linkBody.get('metadata[preferred_method]'), 'apple_pay');
+  assert.equal(linkBody.get('payment_intent_data[metadata][preferred_method]'), 'apple_pay');
   assert.equal(linkBody.get('after_completion[redirect][url]'), 'https://mylaunch.dev/payment-success.html');
 });

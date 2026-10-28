@@ -1,6 +1,6 @@
 const INVOICE_ID = 'LP-AMG-20261027-01';
 const form = document.querySelector('#payment-form');
-const button = document.querySelector('#checkout-button');
+const paymentButtons = [...document.querySelectorAll('[data-payment-method]')];
 const status = document.querySelector('#form-status');
 const canceledNotice = document.querySelector('#canceled-notice');
 const fields = {
@@ -51,10 +51,11 @@ form.addEventListener('submit', async (event) => {
   const values = validate();
   if (!values) return;
 
-  const label = button.querySelector('span');
-  const originalLabel = label.textContent;
-  button.disabled = true;
-  label.textContent = 'Preparing secure checkout';
+  const button = event.submitter || paymentButtons[1];
+  const preferredMethod = button?.dataset.paymentMethod || 'card';
+  const originalContent = button.innerHTML;
+  paymentButtons.forEach((paymentButton) => { paymentButton.disabled = true; });
+  button.textContent = preferredMethod === 'apple_pay' ? 'Opening Apple Pay…' : 'Opening secure card entry…';
   status.textContent = '';
 
   try {
@@ -64,6 +65,7 @@ form.addEventListener('submit', async (event) => {
       body: JSON.stringify({
         invoiceId: INVOICE_ID,
         ...values,
+        preferredMethod,
         requestId: crypto.randomUUID()
       })
     });
@@ -72,7 +74,7 @@ form.addEventListener('submit', async (event) => {
     window.location.assign(result.url);
   } catch (error) {
     status.textContent = error instanceof Error ? error.message : 'Checkout could not be started. Please try again.';
-    button.disabled = false;
-    label.textContent = originalLabel;
+    paymentButtons.forEach((paymentButton) => { paymentButton.disabled = false; });
+    button.innerHTML = originalContent;
   }
 });
