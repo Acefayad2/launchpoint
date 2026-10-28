@@ -461,46 +461,17 @@ input[aria-invalid="true"] { border-color: var(--danger); }
   transition: transform .18s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
 }
 
-.payment-option-apple {
-  border: 0;
-  background: #000;
-  color: white;
-}
+#express-checkout-element { min-height: 54px; }
 
-.payment-option-apple:hover { background: #202020; }
-
-.apple-pay-label {
-  display: inline-flex;
-  align-items: center;
-  gap: .28rem;
-  font-size: 1.25rem;
-  font-weight: 650;
-  letter-spacing: -.035em;
-}
-
-.apple-mark {
-  position: relative;
-  width: 18px;
-  height: 22px;
-  overflow: hidden;
-  color: transparent;
-}
-
-.apple-mark::before {
-  content: "";
-  position: absolute;
-  inset: -2px 0 0;
-  color: white;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 1.45rem;
-  line-height: 1;
-}
-
-.payment-option-note {
-  color: rgb(255 255 255 / 68%);
+.wallet-unavailable,
+.all-methods-note {
+  margin: .55rem 0 0;
+  color: var(--muted);
   font-size: .68rem;
-  font-weight: 600;
+  line-height: 1.45;
 }
+
+.all-methods-note { text-align: center; }
 
 .payment-divider {
   margin: .65rem 0;

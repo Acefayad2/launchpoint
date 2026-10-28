@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#f2f3f5">
   <title>AMG invoice | LaunchPoint</title>
   <link rel="icon" type="image/png" href="/assets/launchpoint-mark-v2.png">
-  <link rel="stylesheet" href="/css/invoice.css?v=20261028-2">
+  <link rel="stylesheet" href="/css/invoice.css?v=20261028-3">
 </head>
 <body>
   <header class="site-header">
@@ -158,23 +158,22 @@
 
         <fieldset class="payment-methods">
           <legend>Payment method</legend>
-          <button class="payment-option payment-option-apple" type="submit" data-payment-method="apple_pay">
-            <span class="apple-pay-label"><span class="apple-mark" aria-hidden="true">●</span> Pay</span>
-            <span class="payment-option-note">Fast checkout</span>
-          </button>
+          <div id="express-checkout-element" aria-label="Express wallet payment options"></div>
+          <p class="wallet-unavailable" id="wallet-unavailable" hidden>Apple Pay or another wallet is not available on this device. Use all payment options below.</p>
           <div class="payment-divider"><span>or</span></div>
           <button class="payment-option payment-option-card" type="submit" data-payment-method="card">
             <span class="card-label">
               <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22"><path d="M3 6.75A1.75 1.75 0 0 1 4.75 5h14.5A1.75 1.75 0 0 1 21 6.75v10.5A1.75 1.75 0 0 1 19.25 19H4.75A1.75 1.75 0 0 1 3 17.25V6.75Zm1.5 1.5h15v-1.5a.25.25 0 0 0-.25-.25H4.75a.25.25 0 0 0-.25.25v1.5Zm0 2v7a.25.25 0 0 0 .25.25h14.5a.25.25 0 0 0 .25-.25v-7h-15Zm2 4.25h4v1.5h-4v-1.5Z"/></svg>
-              Enter card details
+              View all payment options
             </span>
             <span aria-hidden="true">→</span>
           </button>
+          <p class="all-methods-note">Card, Cash App, Klarna, Amazon Pay, bank and more</p>
         </fieldset>
         <div class="form-status" id="form-status" role="status" aria-live="polite"></div>
       </form>
 
-      <p class="wallet-copy">Apple Pay is offered on supported Apple devices. Card details are entered securely in Stripe Checkout. Receipt delivery is optional.</p>
+      <p class="wallet-copy">Apple Pay is offered through Stripe on supported Apple devices. Other payment methods open in secure Stripe Checkout. Receipt delivery is optional.</p>
       <div class="payment-trust" aria-label="Payment protections">
         <span>Stripe secured</span>
         <span>Encrypted checkout</span>
@@ -187,6 +186,7 @@
     <span>Questions? Visit <a href="https://mylaunch.dev">mylaunch.dev</a></span>
   </footer>
 
-  <script src="/js/invoice.js?v=20261028-3" defer></script>
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="/js/invoice.js?v=20261028-4" defer></script>
 </body>
 </html>
