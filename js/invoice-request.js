@@ -214,15 +214,31 @@ async function initialize() {
     fields: { billingDetails: { name: 'auto', email: 'auto', phone: 'auto', address: 'auto' } },
     wallets: { applePay: 'never', googlePay: 'never' }
   });
+  let selectedMethod = 'card';
+  let detailsComplete = false;
+  let cardHasInput = false;
+  const cardStage = $('#card-stage');
+  const cardEntryLabel = $('#card-entry-label');
+  const updateCardEntry = () => {
+    const cardSelected = selectedMethod === 'card';
+    const entering = cardSelected && !detailsComplete && (cardStage.classList.contains('is-focused') || cardHasInput);
+    cardStage.classList.toggle('is-card-entry', entering);
+    cardStage.classList.toggle('is-complete', cardSelected && detailsComplete);
+    cardEntryLabel.textContent = cardSelected
+      ? detailsComplete ? 'Card details ready' : entering ? 'Secure card entry in progress' : 'Card details stay protected'
+      : 'Payment details stay protected';
+  };
   paymentElement.on('ready', () => { paymentReady = true; $('#payment-loading').hidden = true; payButton.disabled = false; });
-  paymentElement.on('focus', () => $('#card-stage').classList.add('is-focused'));
-  paymentElement.on('blur', () => { $('#card-stage').classList.remove('is-focused'); $('#card-stage').classList.remove('is-card-entry'); });
+  paymentElement.on('focus', () => { cardStage.classList.add('is-focused'); updateCardEntry(); });
+  paymentElement.on('blur', () => { cardStage.classList.remove('is-focused'); updateCardEntry(); });
   paymentElement.on('change', (event) => {
     const methods = { card: 'Card', cashapp: 'Cash App Pay', klarna: 'Klarna', us_bank_account: 'Bank account', amazon_pay: 'Amazon Pay', link: 'Link' };
-    const label = methods[event.value?.type] || 'Secure payment';
+    selectedMethod = event.value?.type || 'card';
+    detailsComplete = Boolean(event.complete);
+    cardHasInput = selectedMethod === 'card' && event.empty === false;
+    const label = methods[selectedMethod] || 'Secure payment';
     $('#card-method').textContent = label;
-    $('#card-stage').classList.toggle('is-complete', event.complete);
-    $('#card-stage').classList.toggle('is-card-entry', event.value?.type === 'card' && !event.complete && !event.empty);
+    updateCardEntry();
     $('#card-feedback').textContent = event.complete ? `${label} details ready. Confirm when you’re ready.` : 'Your project. One secure payment.';
   });
   paymentElement.mount('#payment-element');
