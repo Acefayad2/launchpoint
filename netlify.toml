@@ -19,6 +19,11 @@
   to = "/invoice-amg.html"
   status = 200
 
+[[redirects]]
+  from = "/invoice/:id"
+  to = "/invoice-request.html"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]

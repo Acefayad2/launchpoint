@@ -203,8 +203,8 @@
           <header class="payment-panel-head">
             <div>
               <p class="section-kicker">Quick payment request</p>
-              <h2 id="payment-builder-title">Create a secure checkout link</h2>
-              <p>Enter the job details once. Copy the link, open it, or text it to the client through Quo.</p>
+              <h2 id="payment-builder-title">Create a client invoice</h2>
+              <p>Enter the job details once. Your client gets a LaunchPoint invoice with Apple Pay, card, and other available payment options.</p>
             </div>
             <div class="integration-statuses" aria-label="Payment integrations">
               <span class="integration-status" id="stripe-status"><i></i> Stripe checking</span>
@@ -220,7 +220,7 @@
               <label>What is this for?<input id="payment-description" name="description" required maxlength="120" placeholder="Website strategy deposit"></label>
             </div>
             <div class="payment-actions">
-              <button class="primary-action" id="generate-payment-link" type="submit" value="generate">Generate link</button>
+              <button class="primary-action" id="generate-payment-link" type="submit" value="generate">Generate invoice link</button>
               <button class="secondary-action" id="send-payment-link" type="submit" value="send">Generate &amp; text with Quo</button>
               <p class="payment-form-status" id="payment-form-status" role="status">Stripe handles the card details. LaunchPoint never stores them.</p>
             </div>
@@ -229,7 +229,7 @@
           <div class="payment-result" id="payment-result" hidden>
             <div class="payment-result-copy">
               <span id="payment-result-kicker">Ready to send</span>
-              <strong id="payment-result-title">Payment link created</strong>
+              <strong id="payment-result-title">Invoice link created</strong>
               <a id="payment-result-url" href="#" target="_blank" rel="noopener"></a>
             </div>
             <div class="payment-result-actions">
@@ -247,7 +247,7 @@
           <div class="recent-payment-list" id="recent-payment-list"></div>
           <div class="payment-safety-note">
             <span>LP</span>
-            <p><strong>Single-use by default.</strong> Each checkout link stops accepting payments after one successful payment.</p>
+            <p><strong>Single-use by default.</strong> Each new invoice stops accepting payments after one successful payment.</p>
           </div>
         </aside>
       </div>
@@ -282,6 +282,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/portal-data.js"></script>
-  <script src="js/dashboard.js"></script>
+  <script src="js/dashboard.js?v=20261028-1"></script>
 </body>
 </html>
