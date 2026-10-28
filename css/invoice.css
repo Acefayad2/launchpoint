@@ -359,7 +359,23 @@ input[aria-invalid="true"] { border-color: var(--danger); }
 .field-error { min-height: .85rem; margin: -.1rem 0 0; color: var(--danger); font-size: .68rem; }
 .form-status { min-height: 1rem; color: var(--danger); font-size: .75rem; line-height: 1.4; }
 
-.checkout-button {
+.payment-methods {
+  min-width: 0;
+  margin: .2rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.payment-methods legend {
+  margin-bottom: .55rem;
+  color: var(--muted);
+  font-size: .7rem;
+  font-weight: 750;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.payment-option {
   width: 100%;
   min-height: 54px;
   padding: .9rem 1rem;
@@ -369,19 +385,84 @@ input[aria-invalid="true"] { border-color: var(--danger); }
   gap: 1rem;
   border: 0;
   border-radius: 12px;
-  background: var(--ink);
-  color: white;
   cursor: pointer;
   font: inherit;
   font-size: .87rem;
   font-weight: 760;
-  transition: transform .18s ease, background .18s ease, opacity .18s ease;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
 }
 
-.checkout-button:hover { background: #2a2d32; }
-.checkout-button:active { transform: translateY(1px) scale(.99); }
-.checkout-button:focus-visible { outline: 3px solid rgb(243 107 18 / 38%); outline-offset: 3px; }
-.checkout-button:disabled { cursor: wait; opacity: .66; }
+.payment-option-apple {
+  border: 0;
+  background: #000;
+  color: white;
+}
+
+.payment-option-apple:hover { background: #202020; }
+
+.apple-pay-label {
+  display: inline-flex;
+  align-items: center;
+  gap: .28rem;
+  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: -.035em;
+}
+
+.apple-mark {
+  position: relative;
+  width: 18px;
+  height: 22px;
+  overflow: hidden;
+  color: transparent;
+}
+
+.apple-mark::before {
+  content: "";
+  position: absolute;
+  inset: -2px 0 0;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.payment-option-note {
+  color: rgb(255 255 255 / 68%);
+  font-size: .68rem;
+  font-weight: 600;
+}
+
+.payment-divider {
+  margin: .65rem 0;
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  color: var(--muted);
+  font-size: .67rem;
+}
+
+.payment-divider::before,
+.payment-divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: rgb(23 25 29 / 11%);
+}
+
+.payment-option-card {
+  border: 1px solid rgb(23 25 29 / 16%);
+  background: rgb(255 255 255 / 78%);
+  color: var(--ink);
+}
+
+.payment-option-card:hover { border-color: rgb(23 25 29 / 30%); background: white; }
+.card-label { display: inline-flex; align-items: center; gap: .55rem; }
+.card-label svg { fill: currentColor; }
+
+.payment-option:active { transform: translateY(1px) scale(.99); }
+.payment-option:focus-visible { outline: 3px solid rgb(243 107 18 / 38%); outline-offset: 3px; }
+.payment-option:disabled { cursor: wait; opacity: .58; }
 
 .wallet-copy { margin: 1rem 0; color: var(--muted); font-size: .72rem; line-height: 1.5; }
 

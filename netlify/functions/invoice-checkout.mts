@@ -54,6 +54,7 @@ export default async (request: Request) => {
     const name = cleanText(payload.name, 100);
     const email = cleanText(payload.email, 160).toLowerCase();
     const invoiceId = cleanText(payload.invoiceId, 80);
+    const preferredMethod = payload.preferredMethod === 'apple_pay' ? 'apple_pay' : 'card';
     const invoice = INVOICES.get(invoiceId);
     const requestId = /^[a-f0-9-]{36}$/i.test(payload.requestId || '') ? payload.requestId : crypto.randomUUID();
 
@@ -66,6 +67,7 @@ export default async (request: Request) => {
     const metadata = {
       invoice_id: invoiceId,
       payer_name: name,
+      preferred_method: preferredMethod,
       request_id: requestId
     };
 
@@ -74,6 +76,7 @@ export default async (request: Request) => {
       description: `${invoice.customer} - ${invoiceId} - ${invoice.description}`.slice(0, 500),
       'metadata[invoice_id]': metadata.invoice_id,
       'metadata[payer_name]': metadata.payer_name,
+      'metadata[preferred_method]': metadata.preferred_method,
       'metadata[receipt_email]': email,
       'metadata[request_id]': metadata.request_id
     });
@@ -97,10 +100,12 @@ export default async (request: Request) => {
       'payment_intent_data[description]': `${invoiceId}: ${invoice.label}`.slice(0, 500),
       'payment_intent_data[metadata][invoice_id]': metadata.invoice_id,
       'payment_intent_data[metadata][payer_name]': metadata.payer_name,
+      'payment_intent_data[metadata][preferred_method]': metadata.preferred_method,
       'payment_intent_data[metadata][receipt_email]': email,
       'payment_intent_data[metadata][request_id]': metadata.request_id,
       'metadata[invoice_id]': metadata.invoice_id,
       'metadata[payer_name]': metadata.payer_name,
+      'metadata[preferred_method]': metadata.preferred_method,
       'metadata[receipt_email]': email,
       'metadata[request_id]': metadata.request_id,
       'custom_text[submit][message]': `Payment for LaunchPoint invoice ${invoiceId}. Processed securely by Stripe.`
