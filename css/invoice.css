@@ -359,6 +359,71 @@ input[aria-invalid="true"] { border-color: var(--danger); }
 .field-error { min-height: .85rem; margin: -.1rem 0 0; color: var(--danger); font-size: .68rem; }
 .form-status { min-height: 1rem; color: var(--danger); font-size: .75rem; line-height: 1.4; }
 
+.receipt-preference {
+  overflow: hidden;
+  border: 1px solid rgb(23 25 29 / 12%);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 62%);
+}
+
+.receipt-toggle {
+  min-height: 58px;
+  padding: .8rem .9rem;
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  cursor: pointer;
+}
+
+.receipt-toggle > span:first-child { display: grid; gap: .12rem; flex: 1; }
+.receipt-toggle strong { font-size: .78rem; }
+.receipt-toggle small { color: var(--muted); font-size: .67rem; }
+.receipt-toggle > input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+.toggle-track {
+  width: 42px;
+  height: 24px;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #c9cdd3;
+  transition: background .18s ease;
+}
+
+.toggle-track span {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 22%);
+  transition: transform .18s ease;
+}
+
+.receipt-toggle > input:checked + .toggle-track { background: var(--orange); }
+.receipt-toggle > input:checked + .toggle-track span { transform: translateX(18px); }
+.receipt-toggle > input:focus-visible + .toggle-track { outline: 3px solid rgb(243 107 18 / 30%); outline-offset: 2px; }
+
+.receipt-options {
+  padding: .85rem .9rem .2rem;
+  border-top: 1px solid rgb(23 25 29 / 10%);
+}
+
+.receipt-methods { margin: 0 0 .85rem; padding: 0; border: 0; }
+.receipt-methods legend { margin-bottom: .45rem; color: var(--muted); font-size: .68rem; font-weight: 700; }
+.receipt-methods label { display: inline-flex; margin-right: .45rem; cursor: pointer; }
+.receipt-methods input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.receipt-methods span {
+  padding: .42rem .68rem;
+  border: 1px solid rgb(23 25 29 / 13%);
+  border-radius: 999px;
+  background: white;
+  font-size: .7rem;
+  font-weight: 700;
+}
+.receipt-methods input:checked + span { border-color: var(--ink); background: var(--ink); color: white; }
+.receipt-methods input:focus-visible + span { outline: 3px solid rgb(243 107 18 / 30%); outline-offset: 2px; }
+
 .payment-methods {
   min-width: 0;
   margin: .2rem 0 0;
