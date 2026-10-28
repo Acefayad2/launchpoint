@@ -13,7 +13,12 @@
   --shadow: 0 22px 70px rgb(24 29 36 / 9%);
 }
 
-* { box-sizing: border-box; }
+*, *::before, *::after {
+  box-sizing: border-box;
+  animation: none !important;
+  scroll-behavior: auto !important;
+  transition: none !important;
+}
 
 html { min-width: 320px; background: var(--soft); }
 
@@ -278,8 +283,7 @@ h1 {
 
 /* Web approximation of liquid glass. Apple does not provide a web CSS package. */
 .payment-panel {
-  position: sticky;
-  top: 1.5rem;
+  position: static;
   isolation: isolate;
   overflow: hidden;
   padding: 1.55rem;
@@ -525,7 +529,7 @@ input[aria-invalid="true"] { border-color: var(--danger); }
 .card-label { display: inline-flex; align-items: center; gap: .55rem; }
 .card-label svg { fill: currentColor; }
 
-.payment-option:active { transform: translateY(1px) scale(.99); }
+.payment-option:active { transform: none; }
 .payment-option:focus-visible { outline: 3px solid rgb(243 107 18 / 38%); outline-offset: 3px; }
 .payment-option:disabled { cursor: wait; opacity: .58; }
 
@@ -625,11 +629,8 @@ footer a { color: var(--ink); font-weight: 700; }
   .service-row { padding: .85rem; }
   .service-row p { font-size: .71rem; }
   .schedule-content { grid-template-columns: 1fr; }
+  input { font-size: 16px; }
   footer { flex-direction: column; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
 
 @media (prefers-reduced-transparency: reduce) {
