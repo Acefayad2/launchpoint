@@ -44,6 +44,7 @@
       <button class="nav-item is-active" type="button" data-view="overview" aria-current="page">Overview</button>
       <button class="nav-item" type="button" data-view="clients">Clients <span id="nav-client-count">4</span></button>
       <button class="nav-item" type="button" data-view="messages">Messages <span id="nav-unread-count">3</span></button>
+      <button class="nav-item" type="button" data-view="payments">Payments</button>
     </nav>
     <div class="studio-actions">
       <button class="command-button" id="command-button" type="button" aria-label="Open quick actions">
@@ -195,6 +196,62 @@
         <aside class="client-context" id="client-context" aria-label="Client context"></aside>
       </div>
     </section>
+
+    <section class="payments-view" id="payments-view" data-view-panel="payments" hidden>
+      <div class="payment-layout">
+        <section class="payment-builder" aria-labelledby="payment-builder-title">
+          <header class="payment-panel-head">
+            <div>
+              <p class="section-kicker">Quick payment request</p>
+              <h2 id="payment-builder-title">Create a secure checkout link</h2>
+              <p>Enter the job details once. Copy the link, open it, or text it to the client through Quo.</p>
+            </div>
+            <div class="integration-statuses" aria-label="Payment integrations">
+              <span class="integration-status" id="stripe-status"><i></i> Stripe checking</span>
+              <span class="integration-status" id="quo-status"><i></i> Quo checking</span>
+            </div>
+          </header>
+
+          <form class="payment-form" id="payment-form">
+            <div class="payment-field-grid">
+              <label>Company name<input id="payment-company" name="company" required maxlength="100" autocomplete="organization" placeholder="Northline Wellness"></label>
+              <label>Mobile number <span>Needed only to text</span><input id="payment-phone" name="phone" type="tel" maxlength="20" autocomplete="tel" placeholder="+1 313 555 0198"></label>
+              <label>Amount <span>USD</span><span class="money-input"><b>$</b><input id="payment-amount" name="amount" required type="number" min="1" max="50000" step="0.01" inputmode="decimal" placeholder="1,250.00"></span></label>
+              <label>What is this for?<input id="payment-description" name="description" required maxlength="120" placeholder="Website strategy deposit"></label>
+            </div>
+            <div class="payment-actions">
+              <button class="primary-action" id="generate-payment-link" type="submit" value="generate">Generate link</button>
+              <button class="secondary-action" id="send-payment-link" type="submit" value="send">Generate &amp; text with Quo</button>
+              <p class="payment-form-status" id="payment-form-status" role="status">Stripe handles the card details. LaunchPoint never stores them.</p>
+            </div>
+          </form>
+
+          <div class="payment-result" id="payment-result" hidden>
+            <div class="payment-result-copy">
+              <span id="payment-result-kicker">Ready to send</span>
+              <strong id="payment-result-title">Payment link created</strong>
+              <a id="payment-result-url" href="#" target="_blank" rel="noopener"></a>
+            </div>
+            <div class="payment-result-actions">
+              <button class="secondary-action" id="copy-payment-link" type="button">Copy link</button>
+              <a class="primary-action" id="open-payment-link" href="#" target="_blank" rel="noopener">Open checkout</a>
+            </div>
+          </div>
+        </section>
+
+        <aside class="payment-side" aria-labelledby="recent-payment-title">
+          <header>
+            <p class="section-kicker">This browser</p>
+            <h2 id="recent-payment-title">Recent links</h2>
+          </header>
+          <div class="recent-payment-list" id="recent-payment-list"></div>
+          <div class="payment-safety-note">
+            <span>LP</span>
+            <p><strong>Single-use by default.</strong> Each checkout link stops accepting payments after one successful payment.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
   </main>
 
   <div class="demo-banner authenticated-only" role="note"><strong>Secure preview</strong><span>Connected to LaunchPoint’s live Supabase workspace.</span></div>
@@ -217,6 +274,7 @@
   <div class="command-menu" id="command-menu" hidden>
     <button type="button" data-command="new-client"><span>New client</span><kbd>N</kbd></button>
     <button type="button" data-command="messages"><span>Open messages</span><kbd>M</kbd></button>
+    <button type="button" data-command="payments"><span>Create payment link</span><kbd>$</kbd></button>
     <button type="button" data-command="portal"><span>Open active client portal</span><kbd>P</kbd></button>
   </div>
 
