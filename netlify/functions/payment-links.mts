@@ -36,7 +36,7 @@ async function stripeRequest(path: string, secret: string, body: URLSearchParams
     body
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data?.error?.message || 'Stripe could not create the payment link.');
+  if (!response.ok) throw new Error(data?.error?.message || 'Stripe could not create the invoice.');
   return data;
 }
 
@@ -76,37 +76,22 @@ export default async (request: Request) => {
     if (action === 'send' && !validPhone(phone)) return json({ error: 'Enter the client mobile number with country code, such as +13135550198.' }, 400);
     if (action === 'send' && (!quoApiKey || !validPhone(quoFromNumber))) return json({ error: 'Quo is not connected yet. Add QUO_API_KEY and QUO_FROM_NUMBER in Netlify.' }, 503);
 
-    const productBody = new URLSearchParams({
-      name: `LaunchPoint — ${description}`.slice(0, 127),
-      description: `Payment for ${company}`.slice(0, 500),
-      'metadata[company]': company,
-      'metadata[request_id]': requestId
-    });
-    const product = await stripeRequest('/products', stripeSecret, productBody, `${requestId}-product`);
-
-    const priceBody = new URLSearchParams({
+    const reference = `LP-${new Date().getUTCFullYear()}-${requestId.slice(0, 8).toUpperCase()}`;
+    const intentBody = new URLSearchParams({
+      amount: String(amountInCents),
       currency: 'usd',
-      unit_amount: String(amountInCents),
-      product: product.id,
+      description: `${reference}: ${description}`,
+      'automatic_payment_methods[enabled]': 'true',
+      'metadata[launchpoint_invoice]': '1',
+      'metadata[reference]': reference,
       'metadata[company]': company,
+      'metadata[service_description]': description,
       'metadata[request_id]': requestId
     });
-    const price = await stripeRequest('/prices', stripeSecret, priceBody, `${requestId}-price`);
-
+    const paymentIntent = await stripeRequest('/payment_intents', stripeSecret, intentBody, `${requestId}-invoice`);
+    if (!/^pi_[A-Za-z0-9_]+$/.test(paymentIntent.id || '')) throw new Error('Stripe did not return a valid invoice payment.');
     const siteUrl = (Netlify.env.get('URL') || 'https://mylaunch.dev').replace(/\/$/, '');
-    const linkBody = new URLSearchParams({
-      'line_items[0][price]': price.id,
-      'line_items[0][quantity]': '1',
-      'restrictions[completed_sessions][limit]': '1',
-      'after_completion[type]': 'redirect',
-      'after_completion[redirect][url]': `${siteUrl}/payment-success.html`,
-      'payment_intent_data[description]': `${company} — ${description}`.slice(0, 500),
-      'payment_intent_data[metadata][company]': company,
-      'payment_intent_data[metadata][request_id]': requestId,
-      'metadata[company]': company,
-      'metadata[request_id]': requestId
-    });
-    const paymentLink = await stripeRequest('/payment_links', stripeSecret, linkBody, `${requestId}-link`);
+    const url = `${siteUrl}/invoice/${encodeURIComponent(paymentIntent.id)}`;
 
     let sent = false;
     if (action === 'send') {
@@ -115,7 +100,7 @@ export default async (request: Request) => {
         method: 'POST',
         headers: { authorization: quoApiKey, 'content-type': 'application/json' },
         body: JSON.stringify({
-          content: `LaunchPoint payment request for ${description}: ${dollars}. Pay securely here: ${paymentLink.url}`,
+          content: `LaunchPoint invoice ${reference} for ${company}: ${description}, ${dollars}. Review and pay securely: ${url}`,
           from: quoFromNumber,
           to: [phone]
         })
@@ -124,15 +109,16 @@ export default async (request: Request) => {
         const quoError = await quoResponse.json().catch(() => ({}));
         return json({
           error: quoError?.message || quoError?.error || 'The link was created, but Quo could not send the text.',
-          url: paymentLink.url,
-          paymentLinkId: paymentLink.id,
+          url,
+          paymentIntentId: paymentIntent.id,
+          reference,
           sent: false
         }, 502);
       }
       sent = true;
     }
 
-    return json({ url: paymentLink.url, paymentLinkId: paymentLink.id, sent });
+    return json({ url, paymentIntentId: paymentIntent.id, reference, sent });
   } catch (error) {
     if (error instanceof Response) return error;
     return json({ error: error instanceof Error ? error.message : 'The payment request could not be created.' }, 500);

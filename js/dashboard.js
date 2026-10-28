@@ -15,7 +15,7 @@
     overview: [new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date()), 'Good to see you.', 'Here’s what needs your attention across LaunchPoint.'],
     clients: ['Client roster', 'Every client, one clear view.', 'Track the work, the next decision, and the last conversation.'],
     messages: ['Client care', 'Keep the work moving.', 'Reply without losing the project context around the conversation.'],
-    payments: ['Payments', 'Get paid without slowing down.', 'Create a single-use checkout link and send it while the client is still on your mind.']
+    payments: ['Payments', 'Get paid without slowing down.', 'Create a single-use client invoice and send it while the client is still on your mind.']
   };
 
   const activeClient = () => clients.find((client) => client.id === activeClientId) || clients[0];
@@ -165,7 +165,7 @@
         <b>${escapeHtml(item.amount)}</b>
         <time>${escapeHtml(Portal.formatTime(item.createdAt))}</time>
         <button type="button" data-copy-payment="${escapeHtml(item.url)}">Copy</button>
-      </article>`).join('') : '<div class="payment-empty"><span>↗</span><p>Your newest Stripe links will stay here for quick copying.</p></div>';
+      </article>`).join('') : '<div class="payment-empty"><span>↗</span><p>Your newest invoice links will stay here for quick copying.</p></div>';
   }
 
   function setIntegrationStatus(id, name, connected) {
@@ -296,12 +296,12 @@
     }
     const buttons = [$('#generate-payment-link'), $('#send-payment-link')];
     buttons.forEach((button) => { button.disabled = true; });
-    $('#payment-form-status').textContent = action === 'send' ? 'Creating the secure link and sending the text…' : 'Creating a secure Stripe link…';
+    $('#payment-form-status').textContent = action === 'send' ? 'Creating the invoice and sending the text…' : 'Creating a secure invoice…';
     try {
       const result = await Portal.createPaymentLink({ company, description, amount: amountNumber, phone, action, requestId: crypto.randomUUID() });
       showPaymentResult(result, { company, description, amount });
-      $('#payment-form-status').textContent = result.sent ? 'Payment link created and sent through Quo.' : 'Payment link created. Copy it or open checkout below.';
-      showToast(result.sent ? 'Payment link sent' : 'Payment link created');
+      $('#payment-form-status').textContent = result.sent ? 'Invoice sent through Quo.' : 'Invoice ready. Copy the link or open it below.';
+      showToast(result.sent ? 'Invoice sent' : 'Invoice created');
     } catch (error) {
       if (error.paymentResult?.url) showPaymentResult(error.paymentResult, { company, description, amount });
       $('#payment-form-status').textContent = error.message;

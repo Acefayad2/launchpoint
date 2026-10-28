@@ -64,6 +64,7 @@ form h2 { font-size: .97rem; }
 .card-stage.is-flipped .project-card { transform: rotateY(180deg); }
 .project-card-top, .project-card-bottom { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .project-card-top { font-weight: 750; letter-spacing: -.035em; font-size: 1rem; }
+.project-card-top > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .card-contactless { letter-spacing: -3px; transform: rotate(-15deg); opacity: .5; font-weight: 400; }
 .card-chip { display: block; width: 35px; height: 27px; margin: 21px 0 13px; border: 1px solid #a59f8c; border-radius: 6px; background: linear-gradient(90deg, transparent 30%, #a59f8c 31% 33%, transparent 34% 65%, #a59f8c 66% 68%, transparent 69%), linear-gradient(0deg, #d7d1be 32%, #aaa592 33% 36%, #eee8d3 37% 65%, #aaa592 66% 69%, #ded8c5 70%); }
 .card-dots { color: #696359; font-size: 1.05rem; letter-spacing: .13em; white-space: nowrap; }
@@ -72,11 +73,14 @@ form h2 { font-size: .97rem; }
 .card-stripe { height: 32px; background: #34342f; margin: -3px -23px 18px; }
 .project-card-back strong { display: block; font-size: .92rem; }
 .project-card-back p { font-size: .73rem; line-height: 1.45; margin: 8px 0; max-width: 32ch; color: #68665f; }
-.project-card-back > span { font-size: .56rem; text-transform: uppercase; letter-spacing: .1em; }
+.project-card-back > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .56rem; text-transform: uppercase; letter-spacing: .1em; }
 .card-caption { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 23px; font-size: .62rem; color: #78736a; }
 .card-caption button { border: 0; background: none; cursor: pointer; color: #686052; font: inherit; padding: 6px 0; }
 button:focus-visible, summary:focus-visible { outline: 3px solid #c75b1b80; outline-offset: 4px; border-radius: 5px; }
 .card-stage.is-complete .project-card-front { border-color: #8ca18b; }
+.invoice-shell[hidden] { display: none; }
+.invoice-load-message { width: min(1140px, calc(100% - 48px)); margin: 3rem auto; color: #68685f; font-size: .9rem; }
+#invoice-title, #service-description { overflow-wrap: anywhere; }
 .payment-result { padding: 20px 0; text-align: center; }
 .result-mark { width: 60px; height: 60px; display: grid; place-items: center; margin: 12px auto 22px; color: #38644a; border-radius: 50%; background: #e8f0e7; font-size: 1.7rem; animation: result-reveal 400ms var(--checkout-ease); }
 .payment-result h2 { font-size: 1.5rem; letter-spacing: -.04em; }
