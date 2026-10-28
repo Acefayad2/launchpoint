@@ -8,11 +8,14 @@
   let clientFilter = 'all';
   let session = null;
   let unsubscribeRealtime = null;
+  let latestPaymentUrl = '';
+  let paymentStatusLoaded = false;
 
   const headings = {
     overview: [new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date()), 'Good to see you.', 'Here’s what needs your attention across LaunchPoint.'],
     clients: ['Client roster', 'Every client, one clear view.', 'Track the work, the next decision, and the last conversation.'],
-    messages: ['Client care', 'Keep the work moving.', 'Reply without losing the project context around the conversation.']
+    messages: ['Client care', 'Keep the work moving.', 'Reply without losing the project context around the conversation.'],
+    payments: ['Payments', 'Get paid without slowing down.', 'Create a single-use checkout link and send it while the client is still on your mind.']
   };
 
   const activeClient = () => clients.find((client) => client.id === activeClientId) || clients[0];
@@ -41,8 +44,13 @@
     $('#view-eyebrow').textContent = eyebrow;
     $('#view-title').textContent = title;
     $('#view-description').textContent = description;
+    $('#new-client-button').hidden = view === 'payments';
     if (view === 'messages') renderMessages();
     if (view === 'clients') renderClients();
+    if (view === 'payments') {
+      renderRecentPayments();
+      if (!paymentStatusLoaded) loadPaymentStatus();
+    }
     history.replaceState({}, '', view === 'overview' ? 'dashboard.html' : `dashboard.html?view=${view}`);
   }
 
@@ -137,6 +145,60 @@
     renderMetrics(); renderAttention(); renderClients(); renderMessages();
   }
 
+  function recentPayments() {
+    try { return JSON.parse(localStorage.getItem('launchpoint-payment-links') || '[]'); }
+    catch (_) { return []; }
+  }
+
+  function saveRecentPayment(payment) {
+    const items = [payment, ...recentPayments().filter((item) => item.url !== payment.url)].slice(0, 8);
+    localStorage.setItem('launchpoint-payment-links', JSON.stringify(items));
+    renderRecentPayments();
+  }
+
+  function renderRecentPayments() {
+    const target = $('#recent-payment-list');
+    const items = recentPayments();
+    target.innerHTML = items.length ? items.map((item) => `
+      <article class="recent-payment-item">
+        <div><strong>${escapeHtml(item.company)}</strong><span>${escapeHtml(item.description)}</span></div>
+        <b>${escapeHtml(item.amount)}</b>
+        <time>${escapeHtml(Portal.formatTime(item.createdAt))}</time>
+        <button type="button" data-copy-payment="${escapeHtml(item.url)}">Copy</button>
+      </article>`).join('') : '<div class="payment-empty"><span>↗</span><p>Your newest Stripe links will stay here for quick copying.</p></div>';
+  }
+
+  function setIntegrationStatus(id, name, connected) {
+    const element = $(id);
+    element.classList.toggle('is-connected', connected);
+    element.classList.toggle('is-missing', !connected);
+    element.innerHTML = `<i></i> ${name} ${connected ? 'connected' : 'setup needed'}`;
+  }
+
+  async function loadPaymentStatus() {
+    try {
+      const status = await Portal.getPaymentIntegrationStatus();
+      setIntegrationStatus('#stripe-status', 'Stripe', status.stripeConnected);
+      setIntegrationStatus('#quo-status', 'Quo', status.quoConnected);
+      paymentStatusLoaded = true;
+    } catch (error) {
+      setIntegrationStatus('#stripe-status', 'Stripe', false);
+      setIntegrationStatus('#quo-status', 'Quo', false);
+      $('#payment-form-status').textContent = error.message;
+    }
+  }
+
+  function showPaymentResult(data, details) {
+    latestPaymentUrl = data.url;
+    $('#payment-result').hidden = false;
+    $('#payment-result-kicker').textContent = data.sent ? 'Sent through Quo' : 'Ready to send';
+    $('#payment-result-title').textContent = `${details.company} · ${details.amount}`;
+    $('#payment-result-url').href = data.url;
+    $('#payment-result-url').textContent = data.url;
+    $('#open-payment-link').href = data.url;
+    saveRecentPayment({ ...details, url: data.url, sent: Boolean(data.sent), createdAt: new Date().toISOString() });
+  }
+
   async function openClient(id) {
     activeClientId = id;
     setView('messages');
@@ -159,7 +221,7 @@
         initialize.realtimeTimer = setTimeout(() => refresh().catch(console.error), 250);
       });
       const initialView = new URLSearchParams(location.search).get('view');
-      setView(['clients', 'messages'].includes(initialView) ? initialView : 'overview');
+      setView(['clients', 'messages', 'payments'].includes(initialView) ? initialView : 'overview');
     } catch (error) {
       console.error(error);
       showAuth('The workspace could not load. Please try signing in again.');
@@ -217,6 +279,51 @@
     finally { button.disabled = false; }
   });
 
+  $('#payment-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const action = event.submitter?.value === 'send' ? 'send' : 'generate';
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const company = String(formData.get('company') || '').trim();
+    const description = String(formData.get('description') || '').trim();
+    const amountNumber = Number(formData.get('amount'));
+    const amount = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amountNumber || 0);
+    const phone = String(formData.get('phone') || '').trim();
+    if (action === 'send' && !phone) {
+      $('#payment-form-status').textContent = 'Add the client mobile number before sending with Quo.';
+      $('#payment-phone').focus();
+      return;
+    }
+    const buttons = [$('#generate-payment-link'), $('#send-payment-link')];
+    buttons.forEach((button) => { button.disabled = true; });
+    $('#payment-form-status').textContent = action === 'send' ? 'Creating the secure link and sending the text…' : 'Creating a secure Stripe link…';
+    try {
+      const result = await Portal.createPaymentLink({ company, description, amount: amountNumber, phone, action, requestId: crypto.randomUUID() });
+      showPaymentResult(result, { company, description, amount });
+      $('#payment-form-status').textContent = result.sent ? 'Payment link created and sent through Quo.' : 'Payment link created. Copy it or open checkout below.';
+      showToast(result.sent ? 'Payment link sent' : 'Payment link created');
+    } catch (error) {
+      if (error.paymentResult?.url) showPaymentResult(error.paymentResult, { company, description, amount });
+      $('#payment-form-status').textContent = error.message;
+    } finally {
+      buttons.forEach((button) => { button.disabled = false; });
+      loadPaymentStatus();
+    }
+  });
+
+  $('#copy-payment-link').addEventListener('click', async () => {
+    if (!latestPaymentUrl) return;
+    try { await navigator.clipboard.writeText(latestPaymentUrl); showToast('Payment link copied'); }
+    catch (_) { showToast('Open checkout and copy the address'); }
+  });
+
+  $('#recent-payment-list').addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-copy-payment]');
+    if (!button) return;
+    try { await navigator.clipboard.writeText(button.dataset.copyPayment); showToast('Payment link copied'); }
+    catch (_) { showToast('Copying is unavailable in this browser'); }
+  });
+
   $('#open-client-portal').addEventListener('click', () => { const client = activeClient(); if (client) window.open(`client.html?id=${encodeURIComponent(client.slug)}`, '_blank', 'noopener'); });
   $('#copy-portal-link').addEventListener('click', async () => {
     const client = activeClient(); if (!client) return;
@@ -249,6 +356,7 @@
     const item = event.target.closest('[data-command]'); if (!item) return; toggleCommands(false);
     if (item.dataset.command === 'new-client') dialog.showModal();
     if (item.dataset.command === 'messages') setView('messages');
+    if (item.dataset.command === 'payments') setView('payments');
     if (item.dataset.command === 'portal') $('#open-client-portal').click();
   });
   document.addEventListener('keydown', (event) => {

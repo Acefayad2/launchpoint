@@ -62,6 +62,29 @@
     return data;
   }
 
+  async function paymentRequest(method, payload) {
+    const session = await getSession();
+    if (!session) throw new Error('Please sign in again.');
+    const response = await fetch('/api/payment-links', {
+      method,
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        ...(payload ? { 'Content-Type': 'application/json' } : {})
+      },
+      ...(payload ? { body: JSON.stringify(payload) } : {})
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(data.error || 'The payment service is unavailable.');
+      error.paymentResult = data;
+      throw error;
+    }
+    return data;
+  }
+
+  const getPaymentIntegrationStatus = () => paymentRequest('GET');
+  const createPaymentLink = (input) => paymentRequest('POST', input);
+
   async function loadClients() {
     const { data, error } = await db.from('clients').select('*, milestones(*), messages(*), approvals(*)').order('created_at', { ascending: false });
     if (error) throw error;
@@ -127,7 +150,7 @@
 
   window.LaunchPointPortal = {
     db, getSession, sendMagicLink, signInWithPassword, signOut, getRole, loadClients, loadClient, createClient,
-    addMessage, markMessagesRead, respondToApproval, subscribe,
+    addMessage, markMessagesRead, respondToApproval, subscribe, getPaymentIntegrationStatus, createPaymentLink,
     onAuthStateChange: (callback) => db.auth.onAuthStateChange(callback),
     formatTime, initials
   };
