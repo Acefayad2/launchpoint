@@ -9,7 +9,7 @@ function element() {
   const classes = new Set();
   return {
     hidden: false, checked: false, value: '', textContent: '', events: {}, children: [],
-    classList: { add: (v) => classes.add(v), remove: (v) => classes.delete(v), toggle(v, force) { const add = force ?? !classes.has(v); if (add) classes.add(v); else classes.delete(v); return add; } },
+    classList: { add: (v) => classes.add(v), remove: (v) => classes.delete(v), contains: (v) => classes.has(v), toggle(v, force) { const add = force ?? !classes.has(v); if (add) classes.add(v); else classes.delete(v); return add; } },
     setAttribute() {}, removeAttribute() {}, focus() {}, append(child) { this.children.push(child); },
     addEventListener(name, callback) { this.events[name] = callback; },
     replaceWith(next) { this.replacement = next; }
@@ -52,8 +52,20 @@ async function setup({ confirmation, submitError, phoneReceipt = false, receiptF
   vm.runInContext(source, sandbox);
   await new Promise(setImmediate);
   if (phoneReceipt) { get('#send-receipt').checked = true; get('#receipt-contact').value = '4435550198'; }
-  return { nodes, get, submit: () => stripeElements.get('expressCheckout').events.confirm(), intentRequests: () => intentRequests, confirms: () => confirms, receiptRequests: () => receiptRequests };
+  return { nodes, get, paymentElement: stripeElements.get('payment'), submit: () => stripeElements.get('expressCheckout').events.confirm(), intentRequests: () => intentRequests, confirms: () => confirms, receiptRequests: () => receiptRequests };
 }
+
+test('decorative masked number responds only to incomplete card entry', async () => {
+  const ui = await setup();
+  const stage = ui.get('#card-stage');
+  ui.paymentElement.events.change({ value: { type: 'card' }, empty: false, complete: false });
+  assert.equal(stage.classList.contains('is-card-entry'), true);
+  ui.paymentElement.events.change({ value: { type: 'card' }, empty: false, complete: true });
+  assert.equal(stage.classList.contains('is-card-entry'), false);
+  assert.equal(stage.classList.contains('is-complete'), true);
+  ui.paymentElement.events.change({ value: { type: 'klarna' }, empty: false, complete: false });
+  assert.equal(stage.classList.contains('is-card-entry'), false);
+});
 
 test('invalid Stripe fields do not create a payment or show success', async () => {
   const ui = await setup({ submitError: { message: 'Enter your card number.' } });
