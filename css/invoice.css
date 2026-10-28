@@ -15,9 +15,7 @@
 
 *, *::before, *::after {
   box-sizing: border-box;
-  animation: none !important;
   scroll-behavior: auto !important;
-  transition: none !important;
 }
 
 html { min-width: 320px; background: var(--soft); }
