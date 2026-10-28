@@ -9,7 +9,6 @@
   let session = null;
   let unsubscribeRealtime = null;
   let latestPaymentUrl = '';
-  let paymentStatusLoaded = false;
   let invoiceHistory = [];
   let invoiceHistoryError = '';
 
@@ -52,7 +51,7 @@
     if (view === 'clients') renderClients();
     if (view === 'payments') {
       renderRecentPayments();
-      if (!paymentStatusLoaded) loadPaymentStatus();
+      loadPaymentStatus();
     }
     history.replaceState({}, '', view === 'overview' ? 'dashboard.html' : `dashboard.html?view=${view}`);
   }
@@ -170,7 +169,7 @@
     const element = $(id);
     element.classList.toggle('is-connected', connected);
     element.classList.toggle('is-missing', !connected);
-    element.innerHTML = `<i></i> ${name} ${connected ? 'connected' : 'setup needed'}`;
+    element.innerHTML = `<i></i> ${name} ${connected ? (name === 'Quo' ? 'configured' : 'connected') : 'setup needed'}`;
   }
 
   async function loadPaymentStatus() {
@@ -188,7 +187,6 @@
         url: `${location.origin}/invoice/${encodeURIComponent(item.id)}`
       }));
       renderRecentPayments();
-      paymentStatusLoaded = true;
     } catch (error) {
       setIntegrationStatus('#stripe-status', 'Stripe', false);
       setIntegrationStatus('#quo-status', 'Quo', false);

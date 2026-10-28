@@ -92,7 +92,7 @@ export default async (request: Request) => {
       const base = { stripeConnected: Boolean(stripeSecret), quoConnected: Boolean(quoApiKey && validPhone(quoFromNumber)) };
       if (!stripeSecret) return json({ ...base, recentInvoices: [] });
       try { return json({ ...base, recentInvoices: await recentInvoices(stripeSecret) }); }
-      catch { return json({ ...base, recentInvoices: [], historyError: 'Stripe invoice history could not load.' }); }
+      catch { return json({ ...base, stripeConnected: false, recentInvoices: [], historyError: 'Stripe invoice history could not load.' }); }
     }
     if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
 

@@ -250,7 +250,7 @@
 
   <dialog class="client-dialog" id="client-dialog">
     <form method="dialog" id="client-form">
-      <header><div><p class="section-kicker">Client setup</p><h2>Add a LaunchPoint client</h2></div><button class="dialog-close" value="cancel" aria-label="Close" type="submit">×</button></header>
+      <header><div><p class="section-kicker">Client setup</p><h2>Add a LaunchPoint client</h2></div><button class="dialog-close" value="cancel" aria-label="Close" type="submit" formnovalidate>×</button></header>
       <div class="dialog-grid">
         <label>Business name<input name="business" required maxlength="80" placeholder="Northline Wellness"></label>
         <label>Primary contact<input name="contact" required maxlength="80" placeholder="Maya Robinson"></label>
@@ -259,7 +259,7 @@
         <label>Status<select name="status"><option value="active">Active</option><option value="waiting">Waiting</option><option value="complete">Complete</option></select></label>
         <label>Next step<input name="nextStep" required maxlength="120" placeholder="Review homepage direction"></label>
       </div>
-      <footer><button class="secondary-action" value="cancel" type="submit">Cancel</button><button class="primary-action" value="save" type="submit">Add client</button></footer>
+      <footer><button class="secondary-action" value="cancel" type="submit" formnovalidate>Cancel</button><button class="primary-action" value="save" type="submit">Add client</button></footer>
     </form>
   </dialog>
 
@@ -274,6 +274,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/portal-data.js"></script>
-  <script src="js/dashboard.js?v=20261028-2"></script>
+  <script src="js/dashboard.js?v=20261028-3"></script>
 </body>
 </html>
