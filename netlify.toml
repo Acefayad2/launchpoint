@@ -4,6 +4,21 @@
 [functions]
   directory = "netlify/functions"
 
+[[redirects]]
+  from = "/invoice/amg"
+  to = "/invoice-amg.html"
+  status = 200
+
+[[redirects]]
+  from = "/pay/amg"
+  to = "/invoice-amg.html"
+  status = 200
+
+[[redirects]]
+  from = "/invoice/LP-AMG-20261027-01"
+  to = "/invoice-amg.html"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Review and securely pay LaunchPoint invoice LP-AMG-20261027-01 for Anointed Money Group.">
+  <meta name="theme-color" content="#f2f3f5">
+  <title>AMG invoice | LaunchPoint</title>
+  <link rel="icon" type="image/png" href="assets/launchpoint-mark-v2.png">
+  <link rel="stylesheet" href="css/invoice.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="https://mylaunch.dev" aria-label="LaunchPoint home">
+      <img src="assets/launchpoint-logo-invoice.svg" alt="LaunchPoint">
+    </a>
+    <div class="header-meta">
+      <span>Invoice</span>
+      <strong>LP-AMG-20261027-01</strong>
+    </div>
+  </header>
+
+  <main class="invoice-shell">
+    <article class="invoice-paper" aria-labelledby="invoice-title">
+      <div class="invoice-heading">
+        <div>
+          <p class="kicker">Website and communications systems</p>
+          <h1 id="invoice-title">AMG Website and CRM Invoice</h1>
+          <p class="invoice-summary">Website, domain, SMS administration and Supabase setup.</p>
+        </div>
+        <span class="invoice-status">Open</span>
+      </div>
+
+      <dl class="invoice-parties">
+        <div>
+          <dt>From</dt>
+          <dd>LaunchPoint</dd>
+          <dd><a href="https://mylaunch.dev">mylaunch.dev</a></dd>
+        </div>
+        <div>
+          <dt>Bill to</dt>
+          <dd>Anointed Money Group (AMG)</dd>
+          <dd>anointedmoneygroup.com</dd>
+        </div>
+        <div>
+          <dt>Prepared</dt>
+          <dd>October 27, 2026</dd>
+          <dd>USD</dd>
+        </div>
+      </dl>
+
+      <section class="services" aria-labelledby="services-title">
+        <div class="section-heading">
+          <h2 id="services-title">Services</h2>
+          <span>Amount</span>
+        </div>
+
+        <div class="service-row">
+          <div>
+            <h3>Website design and development</h3>
+            <p>Branded, responsive website with organized pages, navigation, contact links and resource connections.</p>
+          </div>
+          <strong>Included</strong>
+        </div>
+        <div class="service-row">
+          <div>
+            <h3>Domain configuration and website launch</h3>
+            <p>Custom-domain connection, DNS configuration, HTTPS setup and production website publishing.</p>
+          </div>
+          <strong>Included</strong>
+        </div>
+        <div class="service-row">
+          <div>
+            <h3>SMS CRM dashboard and Quo integration</h3>
+            <p>Admin portal for contacts, groups, individual messages and a weekly reminder calendar.</p>
+          </div>
+          <strong>Included</strong>
+        </div>
+        <div class="service-row">
+          <div>
+            <h3>Supabase backend and data storage setup</h3>
+            <p>Project configuration, structured CRM data storage, authentication integration and access controls.</p>
+          </div>
+          <strong>Included</strong>
+        </div>
+      </section>
+
+      <div class="invoice-total">
+        <span>Total invoice</span>
+        <strong>$4,500.00</strong>
+      </div>
+
+      <details class="schedule">
+        <summary>View service schedule</summary>
+        <div class="schedule-content">
+          <section>
+            <h3>Website design and development</h3>
+            <p>Design and development of AMG's branded public website with responsive layouts for desktop and mobile browsers. Includes page structure, navigation, leadership and contact presentation, plus connections to licensing and study resources.</p>
+          </section>
+          <section>
+            <h3>Domain configuration and launch</h3>
+            <p>Connection of anointedmoneygroup.com to the production website, including DNS routing and HTTPS configuration. This covers technical setup and publishing, not domain purchase or renewal.</p>
+          </section>
+          <section>
+            <h3>SMS CRM dashboard and Quo integration</h3>
+            <p>Development of the website admin portal at anointedmoneygroup.com/admin/ with contact lists, group-based organization, individual-message workflows and a weekly scheduling view. Quo provider connection and recurring reminder templates are included.</p>
+          </section>
+          <section>
+            <h3>Supabase backend and data storage setup</h3>
+            <p>Configuration of the Supabase backend supporting the website CRM, including structured storage for contacts, groups, message schedules and delivery records, authentication integration and access controls.</p>
+          </section>
+          <section>
+            <h3>Scope and ongoing costs</h3>
+            <p>Mobile app development, app-store submission and native-device releases are not included. Third-party subscriptions, hosting or storage usage, SMS/MMS charges, additional phone numbers and domain renewals are separate from the project service fee.</p>
+          </section>
+        </div>
+      </details>
+    </article>
+
+    <aside class="payment-panel" aria-labelledby="payment-title">
+      <div class="payment-topline">
+        <span>Amount due</span>
+        <span class="secure-label">Secure</span>
+      </div>
+      <p class="payment-amount">$4,500.00</p>
+      <p class="payment-reference">Invoice LP-AMG-20261027-01</p>
+
+      <div class="notice notice-canceled" id="canceled-notice" hidden>
+        Checkout was canceled. No payment was taken.
+      </div>
+
+      <form id="payment-form" novalidate>
+        <h2 id="payment-title">Pay this invoice</h2>
+        <div class="field-group">
+          <label for="name">Payer name</label>
+          <input id="name" name="name" type="text" maxlength="100" autocomplete="name" placeholder="Full name" required>
+          <p class="field-error" id="name-error"></p>
+        </div>
+        <div class="field-group">
+          <label for="email">Receipt email</label>
+          <input id="email" name="email" type="email" maxlength="160" autocomplete="email" inputmode="email" placeholder="name@company.com" required>
+          <p class="field-error" id="email-error"></p>
+        </div>
+
+        <div class="form-status" id="form-status" role="status" aria-live="polite"></div>
+        <button class="checkout-button" id="checkout-button" type="submit">
+          <span>Pay $4,500 securely</span>
+          <span aria-hidden="true">→</span>
+        </button>
+      </form>
+
+      <p class="wallet-copy">Apple Pay and card options appear in Stripe Checkout when available on your device.</p>
+      <div class="payment-trust" aria-label="Payment protections">
+        <span>Stripe secured</span>
+        <span>Encrypted checkout</span>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <span>LaunchPoint</span>
+    <span>Questions? Visit <a href="https://mylaunch.dev">mylaunch.dev</a></span>
+  </footer>
+
+  <script src="js/invoice.js" defer></script>
+</body>
+</html>
