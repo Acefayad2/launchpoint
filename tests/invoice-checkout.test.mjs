@@ -7,6 +7,7 @@ const runnable = source
   .replace(/function json\(body: unknown, status = 200\)/, 'function json(body, status = 200)')
   .replace(/function cleanText\(value: unknown, maximum: number\)/, 'function cleanText(value, maximum)')
   .replace(/function validEmail\(value: string\)/, 'function validEmail(value)')
+  .replace(/function validPhone\(value: string\)/, 'function validPhone(value)')
   .replace(/async function stripeRequest\(path: string, secret: string, body: URLSearchParams, idempotencyKey: string\)/, 'async function stripeRequest(path, secret, body, idempotencyKey)')
   .replace(/export default async \(request: Request\) =>/, 'const handler = async (request) =>')
   .replace(/export const config = [\s\S]*$/, 'export { handler };');
@@ -35,7 +36,7 @@ test('rejects an invoice that is not in the server-side catalog', async () => {
   assert.match((await response.json()).error, /invoice/i);
 });
 
-test('creates a fixed-price single-use Stripe Payment Link for the AMG invoice', async (t) => {
+test('creates a fixed-price single-use Stripe Payment Link with an optional email receipt', async (t) => {
   setNetlifyEnv({ STRIPE_SECRET_KEY: 'rk_live_example', URL: 'https://mylaunch.dev' });
   const originalFetch = globalThis.fetch;
   t.after(() => { globalThis.fetch = originalFetch; });
@@ -60,8 +61,8 @@ test('creates a fixed-price single-use Stripe Payment Link for the AMG invoice',
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      name: 'Amina Cole',
-      email: 'amina@example.com',
+      receiptMethod: 'email',
+      receiptContact: 'amina@example.com',
       invoiceId: 'LP-AMG-20261027-01',
       preferredMethod: 'apple_pay',
       amount: 1,
@@ -70,17 +71,70 @@ test('creates a fixed-price single-use Stripe Payment Link for the AMG invoice',
   }));
 
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { url: 'https://buy.stripe.com/example', paymentLinkId: 'plink_test_123' });
+  assert.deepEqual(await response.json(), { url: 'https://buy.stripe.com/example', paymentLinkId: 'plink_test_123', sent: false });
 
   const productBody = stripeBodies.get('https://api.stripe.com/v1/products');
   const priceBody = stripeBodies.get('https://api.stripe.com/v1/prices');
   const linkBody = stripeBodies.get('https://api.stripe.com/v1/payment_links');
-  assert.equal(productBody.get('metadata[receipt_email]'), 'amina@example.com');
+  assert.equal(productBody.get('metadata[recipient_name]'), 'Simisola Ajimatanrareje');
   assert.equal(priceBody.get('unit_amount'), '450000');
   assert.equal(linkBody.get('line_items[0][price]'), 'price_test_123');
   assert.equal(linkBody.get('restrictions[completed_sessions][limit]'), '1');
   assert.equal(linkBody.get('metadata[invoice_id]'), 'LP-AMG-20261027-01');
   assert.equal(linkBody.get('metadata[preferred_method]'), 'apple_pay');
   assert.equal(linkBody.get('payment_intent_data[metadata][preferred_method]'), 'apple_pay');
+  assert.equal(linkBody.get('payment_intent_data[receipt_email]'), 'amina@example.com');
+  assert.equal(linkBody.get('metadata[receipt_method]'), 'email');
   assert.equal(linkBody.get('after_completion[redirect][url]'), 'https://mylaunch.dev/payment-success.html');
+});
+
+test('texts the invoice link through Quo when phone delivery is selected', async (t) => {
+  setNetlifyEnv({
+    STRIPE_SECRET_KEY: 'rk_live_example',
+    QUO_API_KEY: 'quo_example',
+    QUO_FROM_NUMBER: '+14436582469',
+    URL: 'https://mylaunch.dev'
+  });
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  let quoPayload;
+  globalThis.fetch = async (url, options) => {
+    if (url === 'https://api.quo.com/v1/messages') {
+      quoPayload = JSON.parse(options.body);
+      return new Response(JSON.stringify({ id: 'message_test_123' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' }
+      });
+    }
+
+    const responseByUrl = {
+      'https://api.stripe.com/v1/products': { id: 'prod_test_456' },
+      'https://api.stripe.com/v1/prices': { id: 'price_test_456' },
+      'https://api.stripe.com/v1/payment_links': { id: 'plink_test_456', url: 'https://buy.stripe.com/phone-example' }
+    };
+    assert.ok(responseByUrl[url], `Unexpected endpoint: ${url}`);
+    return new Response(JSON.stringify(responseByUrl[url]), {
+      status: 200,
+      headers: { 'content-type': 'application/json' }
+    });
+  };
+
+  const response = await handler(new Request('https://mylaunch.dev/api/invoice-checkout', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      receiptMethod: 'phone',
+      receiptContact: '+14435550198',
+      invoiceId: 'LP-AMG-20261027-01',
+      preferredMethod: 'card',
+      requestId: '550e8400-e29b-41d4-a716-446655440001'
+    })
+  }));
+
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).sent, true);
+  assert.deepEqual(quoPayload.to, ['+14435550198']);
+  assert.match(quoPayload.content, /Simisola Ajimatanrareje/);
+  assert.match(quoPayload.content, /https:\/\/buy\.stripe\.com\/phone-example/);
 });

@@ -39,6 +39,7 @@
         </div>
         <div>
           <dt>Bill to</dt>
+          <dd>Simisola Ajimatanrareje</dd>
           <dd>Anointed Money Group (AMG)</dd>
           <dd>anointedmoneygroup.com</dd>
         </div>
@@ -131,15 +132,28 @@
 
       <form id="payment-form" novalidate>
         <h2 id="payment-title">Choose how to pay</h2>
-        <div class="field-group">
-          <label for="name">Payer name</label>
-          <input id="name" name="name" type="text" maxlength="100" autocomplete="name" placeholder="Full name" required>
-          <p class="field-error" id="name-error"></p>
-        </div>
-        <div class="field-group">
-          <label for="email">Receipt email</label>
-          <input id="email" name="email" type="email" maxlength="160" autocomplete="email" inputmode="email" placeholder="name@company.com" required>
-          <p class="field-error" id="email-error"></p>
+        <div class="receipt-preference">
+          <label class="receipt-toggle" for="send-receipt">
+            <span>
+              <strong>Send me a receipt</strong>
+              <small>Optional</small>
+            </span>
+            <input id="send-receipt" name="sendReceipt" type="checkbox">
+            <span class="toggle-track" aria-hidden="true"><span></span></span>
+          </label>
+
+          <div class="receipt-options" id="receipt-options" hidden>
+            <fieldset class="receipt-methods">
+              <legend>Send receipt by</legend>
+              <label><input type="radio" name="receiptMethod" value="email" checked><span>Email</span></label>
+              <label><input type="radio" name="receiptMethod" value="phone"><span>Text message</span></label>
+            </fieldset>
+            <div class="field-group">
+              <label for="receipt-contact" id="receipt-contact-label">Email address</label>
+              <input id="receipt-contact" name="receiptContact" type="email" maxlength="160" autocomplete="email" inputmode="email" placeholder="name@company.com">
+              <p class="field-error" id="receipt-contact-error"></p>
+            </div>
+          </div>
         </div>
 
         <fieldset class="payment-methods">
@@ -160,7 +174,7 @@
         <div class="form-status" id="form-status" role="status" aria-live="polite"></div>
       </form>
 
-      <p class="wallet-copy">Apple Pay is offered on supported Apple devices. Card details are entered securely in Stripe Checkout.</p>
+      <p class="wallet-copy">Apple Pay is offered on supported Apple devices. Card details are entered securely in Stripe Checkout. Receipt delivery is optional.</p>
       <div class="payment-trust" aria-label="Payment protections">
         <span>Stripe secured</span>
         <span>Encrypted checkout</span>
@@ -173,6 +187,6 @@
     <span>Questions? Visit <a href="https://mylaunch.dev">mylaunch.dev</a></span>
   </footer>
 
-  <script src="/js/invoice.js?v=20261028-2" defer></script>
+  <script src="/js/invoice.js?v=20261028-3" defer></script>
 </body>
 </html>

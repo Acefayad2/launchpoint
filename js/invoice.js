@@ -3,48 +3,74 @@ const form = document.querySelector('#payment-form');
 const paymentButtons = [...document.querySelectorAll('[data-payment-method]')];
 const status = document.querySelector('#form-status');
 const canceledNotice = document.querySelector('#canceled-notice');
-const fields = {
-  name: document.querySelector('#name'),
-  email: document.querySelector('#email')
-};
+const sendReceipt = document.querySelector('#send-receipt');
+const receiptOptions = document.querySelector('#receipt-options');
+const receiptContact = document.querySelector('#receipt-contact');
+const receiptContactLabel = document.querySelector('#receipt-contact-label');
+const receiptMethodInputs = [...document.querySelectorAll('input[name="receiptMethod"]')];
 
 const params = new URLSearchParams(window.location.search);
-if (params.get('name')) fields.name.value = params.get('name').slice(0, 100);
-if (params.get('email')) fields.email.value = params.get('email').slice(0, 160);
 if (params.get('canceled') === '1') canceledNotice.hidden = false;
 
-function setError(name, message) {
-  const field = fields[name];
-  const error = document.querySelector(`#${name}-error`);
-  field.setAttribute('aria-invalid', message ? 'true' : 'false');
-  error.textContent = message;
+function currentReceiptMethod() {
+  return receiptMethodInputs.find((input) => input.checked)?.value || 'email';
+}
+
+function setReceiptError(message) {
+  receiptContact.setAttribute('aria-invalid', message ? 'true' : 'false');
+  document.querySelector('#receipt-contact-error').textContent = message;
+}
+
+function updateReceiptField() {
+  const enabled = sendReceipt.checked;
+  const method = currentReceiptMethod();
+  receiptOptions.hidden = !enabled;
+  receiptContact.disabled = !enabled;
+  receiptContact.type = method === 'email' ? 'email' : 'tel';
+  receiptContact.inputMode = method === 'email' ? 'email' : 'tel';
+  receiptContact.autocomplete = method === 'email' ? 'email' : 'tel';
+  receiptContact.maxLength = method === 'email' ? 160 : 24;
+  receiptContactLabel.textContent = method === 'email' ? 'Email address' : 'Mobile number';
+  receiptContact.placeholder = method === 'email' ? 'name@company.com' : '(443) 555-0198';
+  receiptContact.value = '';
+  setReceiptError('');
+  status.textContent = '';
+}
+
+function normalizePhone(value) {
+  const digits = value.replace(/\D/g, '');
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length >= 8 && digits.length <= 15) return `+${digits}`;
+  return '';
 }
 
 function validate() {
-  const values = {
-    name: fields.name.value.trim(),
-    email: fields.email.value.trim()
-  };
-  const errors = {
-    name: values.name ? '' : 'Enter the payer name.',
-    email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email) ? '' : 'Enter a valid receipt email.'
-  };
+  if (!sendReceipt.checked) return { receiptMethod: 'none', receiptContact: '' };
 
-  Object.entries(errors).forEach(([name, message]) => setError(name, message));
-  const firstError = Object.entries(errors).find(([, message]) => message);
-  if (firstError) {
-    fields[firstError[0]].focus();
+  const method = currentReceiptMethod();
+  const value = receiptContact.value.trim();
+  const normalizedValue = method === 'phone' ? normalizePhone(value) : value.toLowerCase();
+  const valid = method === 'email'
+    ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedValue)
+    : Boolean(normalizedValue);
+
+  if (!valid) {
+    setReceiptError(method === 'email' ? 'Enter a valid email address.' : 'Enter a valid mobile number.');
+    receiptContact.focus();
     return null;
   }
-  return values;
+
+  setReceiptError('');
+  return { receiptMethod: method, receiptContact: normalizedValue };
 }
 
-Object.entries(fields).forEach(([name, field]) => {
-  field.addEventListener('input', () => {
-    setError(name, '');
-    status.textContent = '';
-  });
+sendReceipt.addEventListener('change', updateReceiptField);
+receiptMethodInputs.forEach((input) => input.addEventListener('change', updateReceiptField));
+receiptContact.addEventListener('input', () => {
+  setReceiptError('');
+  status.textContent = '';
 });
+updateReceiptField();
 
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
