@@ -176,3 +176,25 @@ test('sign-out clears form state and removes the authenticated workspace', async
   assert.ok(ui.get('#portal-request-form').resetCount);
   assert.equal(ui.get('#sign-out-button').disabled, false);
 });
+
+test('progress tracker shows where the project is from the studio milestone states', async () => {
+  const ui = await boot({ project: { ...fixture(), milestones: [
+    { label: 'Kickoff', state: 'complete' }, { label: '<b>Build</b>', state: 'current' }, { label: 'Review', state: 'upcoming' }, { label: 'Launch', state: 'upcoming' }
+  ] } });
+  const list = ui.get('#milestone-list');
+  assert.equal(list.attributes.style, '--steps:4;--fill:0.3333');
+  assert.match(list.innerHTML, /<li class="milestone-current" aria-current="step">/);
+  assert.match(list.innerHTML, /milestone-next">[\s\S]*?Review<\/strong><small>Up next/);
+  assert.match(list.innerHTML, /Launch<\/strong><small>Upcoming/);
+  assert.doesNotMatch(list.innerHTML, /<b>Build<\/b>/, 'milestone labels are escaped');
+  assert.match(ui.get('#portal-tracker-now').innerHTML, /Now<\/span><strong>&lt;b&gt;Build&lt;\/b&gt;<\/strong><em>Step 2 of 4/);
+});
+
+test('progress tracker covers finished and not-yet-planned projects', async () => {
+  const done = await boot({ project: { ...fixture(), milestones: [{ label: 'Kickoff', state: 'complete' }, { label: 'Launch', state: 'complete' }] } });
+  assert.match(done.get('#portal-tracker-now').innerHTML, /All 2 steps complete/);
+  assert.equal(done.get('#milestone-list').attributes.style, '--steps:2;--fill:1.0000');
+  const empty = await boot({ project: { ...fixture(), milestones: [] } });
+  assert.match(empty.get('#portal-tracker-now').innerHTML, /will appear here once your team sets them up/);
+  assert.equal(empty.get('#milestone-list').innerHTML, '');
+});
