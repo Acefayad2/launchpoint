@@ -6,7 +6,7 @@
   const requestLabels = { submitted: 'Submitted', in_progress: 'In progress', needs_info: 'Needs your input', completed: 'Completed' };
   const allowedFiles = { pdf: ['application/pdf'], png: ['image/png'], jpg: ['image/jpeg'], jpeg: ['image/jpeg'], webp: ['image/webp'], txt: ['text/plain'], docx: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'], zip: ['application/zip', 'application/x-zip-compressed'] };
   let client = null, session = null, unsubscribeRealtime = null, refreshing = null;
-  let pendingRequest = null, pendingProjectFiles = null, requestBusy = false, fileBusy = false, approvalBusy = false;
+  let pendingRequest = null, pendingProjectFiles = null, requestBusy = false, fileBusy = false, approvalBusy = false, trackerStep = null;
   let messageSignature = '', requestSignature = '', fileSignature = '', generation = 0;
 
   function status(selector, message, isError = false) {
@@ -20,7 +20,7 @@
   function clearSession() {
     generation += 1; session = null; client = null; unsubscribeRealtime?.(); unsubscribeRealtime = null;
     clearTimeout(initialize.realtimeTimer);
-    pendingRequest = null; pendingProjectFiles = null;
+    pendingRequest = null; pendingProjectFiles = null; trackerStep = null;
     ['#portal-request-form', '#portal-file-form', '#portal-reply-form'].forEach((selector) => $(selector).reset());
     ['#portal-request-status', '#portal-file-status', '#portal-reply-status', '#portal-download-status', '#portal-approval-status', '#portal-sync-status'].forEach((selector) => status(selector, ''));
     ['#portal-message-history', '#portal-request-list', '#portal-file-list'].forEach((selector) => { $(selector).innerHTML = ''; });
@@ -66,6 +66,41 @@
     $('#portal-file-submit').setAttribute('aria-busy', String(fileBusy));
     $('#portal-file-finish').hidden = !pendingProjectFiles || fileBusy;
   }
+  // Step tracker driven by the milestone states the studio sets (complete / current / upcoming).
+  // Redraws only when milestones change, so the periodic refresh doesn't replay animations.
+  function renderTracker(milestones) {
+    const steps = milestones.map((item) => ({ label: item.label, state: ['complete', 'current', 'upcoming'].includes(item.state) ? item.state : 'upcoming' }));
+    const signature = JSON.stringify(steps);
+    if (signature === trackerStep?.signature) return;
+    const total = steps.length;
+    const current = steps.findIndex((step) => step.state === 'current');
+    const lastDone = steps.map((step) => step.state).lastIndexOf('complete');
+    const allDone = total > 0 && steps.every((step) => step.state === 'complete');
+    const next = current >= 0 ? steps.findIndex((step, index) => index > current && step.state === 'upcoming') : steps.findIndex((step) => step.state === 'upcoming');
+    const reached = allDone ? total - 1 : Math.max(current, lastDone, 0);
+    const fill = total > 1 ? reached / (total - 1) : allDone ? 1 : 0;
+    const advanced = trackerStep && trackerStep.current !== current && current >= 0;
+    const labels = { complete: 'Done', current: 'In progress', upcoming: 'Upcoming' };
+    const check = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-7"/></svg>';
+
+    const list = $('#milestone-list');
+    list.setAttribute('style', `--steps:${Math.max(total, 1)};--fill:${fill.toFixed(4)}`);
+    list.innerHTML = steps.map((step, index) => {
+      const state = index === next && step.state === 'upcoming' ? 'Up next' : labels[step.state];
+      const classes = [`milestone-${step.state}`, index === next ? 'milestone-next' : '', advanced && index === current ? 'milestone-reached' : ''].filter(Boolean).join(' ');
+      return `<li class="${classes}"${step.state === 'current' ? ' aria-current="step"' : ''}><span class="tracker-node" aria-hidden="true">${step.state === 'complete' ? check : index + 1}</span><strong>${escapeHtml(step.label)}</strong><small>${state}</small></li>`;
+    }).join('');
+
+    const now = $('#portal-tracker-now');
+    if (!total) now.innerHTML = '<span>Your project steps will appear here once your team sets them up.</span>';
+    else if (allDone) now.innerHTML = `<span class="tracker-live is-done" aria-hidden="true"></span><span>All ${total} steps complete</span>`;
+    else {
+      const focus = current >= 0 ? current : Math.max(next, 0);
+      now.innerHTML = `<span class="tracker-live" aria-hidden="true"></span><span>${current >= 0 ? 'Now' : 'Up next'}</span><strong>${escapeHtml(steps[focus].label)}</strong><em>Step ${focus + 1} of ${total}</em>`;
+    }
+    trackerStep = { signature, current };
+  }
+
   function render() {
     document.title = `${client.business} | LaunchPoint client workspace`;
     $('#portal-first-name').textContent = client.contact?.trim().split(/\s+/)[0] || client.business;
@@ -82,7 +117,7 @@
     const milestones = client.milestones || [];
     $('#portal-progress-copy').textContent = milestones.length ? `${milestones.filter((item) => item.state === 'complete').length} of ${milestones.length} milestones complete` : 'Your milestones will appear here.';
     $('#portal-target-date').textContent = client.targetDate ? `Target: ${client.targetDate}` : 'Schedule being confirmed';
-    $('#milestone-list').innerHTML = milestones.map((item) => `<li class="milestone-${['complete', 'current', 'upcoming'].includes(item.state) ? item.state : 'upcoming'}"><span aria-hidden="true"></span><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.state)}</small></li>`).join('');
+    renderTracker(milestones);
     $('#portal-next-title').textContent = client.nextStep || 'We’ll share your next step here.';
     $('#portal-next-copy').textContent = client.nextCopy || 'Questions in the meantime? Send your team a message below.';
     const approval = (client.approvals || []).find((item) => item.status === 'requested');
