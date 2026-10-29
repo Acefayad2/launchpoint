@@ -98,6 +98,8 @@ button:focus-visible, summary:focus-visible { outline: 3px solid #c75b1b80; outl
 .payment-result h2 { font-size: 1.5rem; letter-spacing: -.04em; }
 .payment-result p { color: #696a61; font-size: .85rem; line-height: 1.6; }
 .payment-result a { color: #a9440d; font-size: .8rem; }
+.payment-result .receipt-download { display: block; width: fit-content; margin: 22px auto 16px; padding: 13px 19px; border-radius: 11px; background: #b64c11; color: #fff; font-size: .84rem; font-weight: 700; text-decoration: none; transition: background 180ms ease; }
+.payment-result .receipt-download:hover { background: #923a0a; }
 @keyframes reveal-fields { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes card-light { 0% { opacity: 0; transform: translateX(-80%); } 35% { opacity: 1; } 100% { opacity: 0; transform: translateX(80%); } }
 @keyframes card-entry-pulse { 0%, 100% { opacity: .25; transform: scale(.85); } 50% { opacity: 1; transform: scale(1.25); } }

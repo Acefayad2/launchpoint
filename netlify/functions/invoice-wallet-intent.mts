@@ -101,11 +101,12 @@ export default async (request: Request) => {
         && paymentIntent.metadata?.invoice_id === invoiceId;
       if (!validPayment) return json({ error: 'The payment has not been completed, so a receipt was not sent.' }, 409);
 
+      const receiptUrl = new URL(`/api/paid-receipt?id=${encodeURIComponent(paymentIntentId)}`, request.url).href;
       const quoResponse = await fetch(QUO_MESSAGES_API, {
         method: 'POST',
         headers: { authorization: quoApiKey, 'content-type': 'application/json' },
         body: JSON.stringify({
-          content: `LaunchPoint receipt: $4,500.00 payment received for invoice ${invoiceId}. Thank you, ${invoice.recipient}.`,
+          content: `LaunchPoint receipt: $4,500.00 paid for invoice ${invoiceId}. Download your paid invoice PDF: ${receiptUrl}`,
           from: quoFromNumber,
           to: [phone]
         })

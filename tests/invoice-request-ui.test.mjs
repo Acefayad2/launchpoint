@@ -34,4 +34,6 @@ test('dashboard invoice shows a paid card summary only after a successful paymen
   assert.equal(get('#card-method').textContent, 'Mastercard');
   assert.equal(get('#card-stage').classList.contains('is-paid'), true);
   assert.equal(get('#invoice-status').textContent, 'Paid');
+  const download = get('#payment-form').replacement.children.find((child) => child.className === 'receipt-download');
+  assert.equal(download?.href, '/api/paid-receipt?id=pi_testinvoice123456789');
 });

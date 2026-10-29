@@ -25,14 +25,14 @@ async function setup({ confirmation, submitError, phoneReceipt = false, receiptF
   let confirms = 0;
   let receiptRequests = 0;
   const storage = new Map();
-  if (redirectResult && phoneReceipt) storage.set('receipt:pi_example', JSON.stringify({ receiptMethod: 'phone', receiptContact: '+14435550198', requestId: 'example' }));
+  if (redirectResult && phoneReceipt) storage.set('receipt:pi_example123456789', JSON.stringify({ receiptMethod: 'phone', receiptContact: '+14435550198', requestId: 'example' }));
   const stripe = {
     elements: () => ({
       create(type) { const widget = { events: {}, on(name, callback) { this.events[name] = callback; }, mount() { this.events.ready?.({ availablePaymentMethods: { applePay: true } }); } }; stripeElements.set(type, widget); return widget; },
       submit: async () => ({ error: submitError })
     }),
     createConfirmationToken: async () => ({ confirmationToken: { id: 'ctoken_example' } }),
-    confirmPayment: async () => { confirms++; return confirmation || { paymentIntent: { id: 'pi_example', status: 'succeeded' } }; },
+    confirmPayment: async () => { confirms++; return confirmation || { paymentIntent: { id: 'pi_example123456789', status: 'succeeded' } }; },
     retrievePaymentIntent: async () => redirectResult
   };
   const sandbox = {
@@ -46,7 +46,7 @@ async function setup({ confirmation, submitError, phoneReceipt = false, receiptF
       const body = JSON.parse(options.body);
       if (body.action === 'send-phone-receipt') { receiptRequests++; return { ok: !receiptFailure, json: async () => ({ error: 'Receipt delivery failed.' }) }; }
       intentRequests++;
-      return { ok: true, json: async () => ({ clientSecret: 'pi_secret_example', paymentIntentId: 'pi_example' }) };
+      return { ok: true, json: async () => ({ clientSecret: 'pi_secret_example', paymentIntentId: 'pi_example123456789' }) };
     }
   };
   vm.createContext(sandbox);
@@ -83,6 +83,8 @@ test('paid confirmation shows only Stripe-verified brand and last four on the ca
   assert.equal(ui.get('#card-entry-label').textContent, '•••• 4242');
   assert.equal(ui.get('#card-method').textContent, 'Visa');
   assert.equal(ui.get('#card-stage').classList.contains('is-paid'), true);
+  const download = ui.get('#payment-form').replacement.children.find((child) => child.className === 'receipt-download');
+  assert.equal(download?.href, '/api/paid-receipt?id=pi_example123456789');
 });
 
 test('invoice card templates do not display a fake card number', async () => {
@@ -122,18 +124,19 @@ test('unverified redirected payments block another charge', async () => {
 });
 
 test('successful provider redirects deliver the saved optional text receipt', async () => {
-  const ui = await setup({ phoneReceipt: true, redirectResult: { paymentIntent: { id: 'pi_example', status: 'succeeded', amount: 450000, currency: 'usd' } } });
+  const ui = await setup({ phoneReceipt: true, redirectResult: { paymentIntent: { id: 'pi_example123456789', status: 'succeeded', amount: 450000, currency: 'usd' } } });
   assert.equal(ui.get('.invoice-status').textContent, 'Paid');
   assert.equal(ui.receiptRequests(), 1);
   assert.equal(ui.intentRequests(), 0);
 });
 
 test('pending bank payments display processing instead of paid', async () => {
-  const ui = await setup({ confirmation: { paymentIntent: { id: 'pi_example', status: 'processing' } } });
+  const ui = await setup({ confirmation: { paymentIntent: { id: 'pi_example123456789', status: 'processing' } } });
   await ui.submit();
   assert.equal(ui.get('.invoice-status').textContent, 'Processing');
   assert.match(ui.get('#payment-form').replacement.innerHTML, /Payment processing/);
   assert.doesNotMatch(ui.get('#payment-form').replacement.innerHTML, /Payment received/);
+  assert.equal(ui.get('#payment-form').replacement.children.some((child) => child.className === 'receipt-download'), false);
 });
 
 test('receipt delivery failure does not turn a successful payment into a retry', async () => {
@@ -141,7 +144,7 @@ test('receipt delivery failure does not turn a successful payment into a retry',
   await ui.submit();
   assert.equal(ui.get('.invoice-status').textContent, 'Paid');
   assert.match(ui.get('#payment-form').replacement.innerHTML, /Payment received/);
-  assert.match(ui.get('#payment-form').replacement.children[0].textContent, /payment succeeded/);
+  assert.equal(ui.get('#payment-form').replacement.children.some((child) => /payment succeeded/.test(child.textContent)), true);
   await ui.submit();
   assert.equal(ui.confirms(), 1);
 });

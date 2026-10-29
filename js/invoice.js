@@ -133,13 +133,20 @@ async function loadPaidCard(paymentIntentId) {
   } catch { return null; }
 }
 
-function showResult(paymentStatus, receiptWarning = '', card = null) {
+function showResult(paymentStatus, receiptWarning = '', card = null, paymentIntentId = '') {
   const succeeded = paymentStatus === 'succeeded';
   const result = document.createElement('section');
   result.className = 'payment-result';
   result.setAttribute('role', 'status');
   result.innerHTML = `<div class="result-mark" aria-hidden="true">${succeeded ? '✓' : '…'}</div><h2>${succeeded ? 'Payment received.' : 'Payment processing.'}</h2><p>${succeeded ? 'Thank you. Your $4,500.00 payment for invoice LP-AMG-20261027-01 is complete.' : 'Your payment has been submitted. Your bank or payment provider is still processing it. Please do not pay again.'}</p><a href="/">Return to LaunchPoint ↗</a>`;
   if (succeeded) {
+    if (/^pi_[A-Za-z0-9_]{10,80}$/.test(paymentIntentId)) {
+      const download = document.createElement('a');
+      download.href = `/api/paid-receipt?id=${encodeURIComponent(paymentIntentId)}`;
+      download.className = 'receipt-download';
+      download.textContent = 'Download paid invoice (PDF) ↗';
+      result.append(download);
+    }
     const paidWith = showPaidCard(card);
     if (paidWith) { const note = document.createElement('p'); note.textContent = paidWith; result.append(note); }
   }
@@ -215,7 +222,7 @@ async function completePayment() {
     const receiptWarning = await sendPhoneReceipt(confirmation.paymentIntent, pendingAttempt);
     try { sessionStorage.removeItem(`receipt:${confirmation.paymentIntent.id}`); } catch { /* Optional storage. */ }
     const card = paymentStatus === 'succeeded' ? await loadPaidCard(confirmation.paymentIntent.id) : null;
-    showResult(paymentStatus, receiptWarning, card);
+    showResult(paymentStatus, receiptWarning, card, confirmation.paymentIntent.id);
   } catch (error) {
     status.textContent = error instanceof Error ? error.message : 'Payment could not be completed. Please try again.';
     setPaying(false);
@@ -256,7 +263,7 @@ async function initializeExpressCheckout() {
       const receiptWarning = await sendPhoneReceipt(result.paymentIntent, savedReceipt);
       history.replaceState(null, '', window.location.pathname);
       const card = result.paymentIntent.status === 'succeeded' ? await loadPaidCard(result.paymentIntent.id) : null;
-      showResult(result.paymentIntent.status, receiptWarning, card);
+      showResult(result.paymentIntent.status, receiptWarning, card, result.paymentIntent.id);
       return;
     }
     if (!['requires_payment_method', 'canceled'].includes(result.paymentIntent.status)) {

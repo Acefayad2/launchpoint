@@ -104,11 +104,17 @@ function showResult(paymentStatus, warning = '', card = null) {
   const home = document.createElement('a');
   home.href = '/';
   home.textContent = 'Return to LaunchPoint ↗';
-  result.append(mark, heading, description, home);
+  result.append(mark, heading, description);
   if (succeeded) {
+    const download = document.createElement('a');
+    download.href = `/api/paid-receipt?id=${encodeURIComponent(invoiceId)}`;
+    download.className = 'receipt-download';
+    download.textContent = 'Download paid invoice (PDF) ↗';
+    result.append(download);
     const paidWith = showPaidCard(card);
     if (paidWith) { const note = document.createElement('p'); note.textContent = paidWith; result.append(note); }
   }
+  result.append(home);
   if (warning) { const note = document.createElement('p'); note.textContent = warning; result.append(note); }
   form.replaceWith(result);
   $('#invoice-status').textContent = succeeded ? 'Paid' : 'Processing';

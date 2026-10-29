@@ -111,11 +111,12 @@ export default async (request: Request) => {
       const from = (Netlify.env.get('QUO_FROM_NUMBER') || '').replace(/[^+\d]/g, '');
       if (!quoApiKey || !validPhone(from)) return json({ error: 'Text receipts are temporarily unavailable.' }, 503);
       const dollars = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(intent.amount / 100);
+      const receiptUrl = new URL(`/api/paid-receipt?id=${encodeURIComponent(id)}`, request.url).href;
       const quoResponse = await fetch(QUO_MESSAGES_API, {
         method: 'POST',
         headers: { authorization: quoApiKey, 'content-type': 'application/json' },
         body: JSON.stringify({
-          content: `LaunchPoint receipt: ${dollars} paid for invoice ${intent.metadata.reference}. Thank you, ${intent.metadata.company}.`,
+          content: `LaunchPoint receipt: ${dollars} paid for invoice ${intent.metadata.reference}. Download your paid invoice PDF: ${receiptUrl}`,
           from,
           to: [phone]
         })
