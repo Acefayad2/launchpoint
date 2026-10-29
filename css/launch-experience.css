@@ -1,0 +1,129 @@
+/* Launch experience: additive layers over the approved intro and hero.
+   Nothing here restyles the frozen rocket, smoke, blob or headline. */
+
+@property --veil-y { syntax: '<percentage>'; inherits: false; initial-value: 92%; }
+@property --veil-r { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+
+/* ---------- Intro: pre-ignition veil ----------
+   Painted from the head stylesheet so the homepage never flashes before the
+   rocket is ready. Sits under the smoke canvas (z 1) and the ship (z 2). */
+.launch-intro::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1px 1px at 12% 18%, #ffffffd0 50%, transparent 51%),
+    radial-gradient(1px 1px at 27% 64%, #ffffff90 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 41% 31%, #ffffffb0 50%, transparent 51%),
+    radial-gradient(1px 1px at 58% 12%, #ffffffa0 50%, transparent 51%),
+    radial-gradient(1px 1px at 69% 47%, #ffffff80 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 83% 22%, #ffffffc0 50%, transparent 51%),
+    radial-gradient(1px 1px at 91% 71%, #ffffff90 50%, transparent 51%),
+    radial-gradient(1px 1px at 7% 82%, #ffffff70 50%, transparent 51%),
+    radial-gradient(1px 1px at 35% 88%, #ffffff60 50%, transparent 51%),
+    radial-gradient(1px 1px at 76% 86%, #ffffff60 50%, transparent 51%),
+    radial-gradient(1px 1px at 49% 55%, #ffffff50 50%, transparent 51%),
+    radial-gradient(1px 1px at 18% 41%, #ffffff70 50%, transparent 51%),
+    radial-gradient(120% 70% at 50% 120%, #2a120a 0%, #12090a 38%, transparent 70%),
+    #07080a;
+  -webkit-mask-image: radial-gradient(ellipse 70% 62% at 50% var(--veil-y), transparent var(--veil-r), #000 calc(var(--veil-r) + 22%));
+  mask-image: radial-gradient(ellipse 70% 62% at 50% var(--veil-y), transparent var(--veil-r), #000 calc(var(--veil-r) + 22%));
+}
+.launch-intro.is-playing::before { animation: launch-veil-open 2.55s cubic-bezier(.7, 0, .2, 1) forwards; }
+
+@keyframes launch-veil-open {
+  0%, 28% { --veil-y: 92%; --veil-r: 0%; }
+  100% { --veil-y: 38%; --veil-r: 165%; }
+}
+
+/* Launch-pad glow: ignites, then falls away as the rocket climbs. */
+.launch-intro::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -14vh;
+  z-index: 1;
+  width: min(120vw, 1400px);
+  height: 46vh;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(closest-side, #ffd9a8 0%, #ff8a3d55 26%, #e8502a2e 52%, transparent 100%);
+  mix-blend-mode: screen;
+}
+.launch-intro.is-playing::after { animation: launch-pad-glow 2.4s cubic-bezier(.22, 1, .36, 1) forwards; }
+
+@keyframes launch-pad-glow {
+  0% { opacity: 0; transform: translateX(-50%) scale(.6); }
+  12% { opacity: 1; transform: translateX(-50%) scale(1); }
+  22% { opacity: .82; }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) scale(1.25) translateY(12vh); }
+}
+
+/* Ignition shudder on the rocket artwork (the wrapper carries the flight transform). */
+.launch-intro.is-playing .launch-intro-ship img { animation: launch-shudder .07s linear 8 alternate; }
+@keyframes launch-shudder {
+  from { transform: translate3d(-.8px, .4px, 0); }
+  to { transform: translate3d(.8px, -.4px, 0); }
+}
+
+.launch-ignition {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+/* ---------- Hero: background depth ----------
+   The WebGL blob canvas is opaque black, so these layers add light with
+   screen blending instead of sitting behind it. */
+.hero-depth {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 1.2s cubic-bezier(.22, 1, .36, 1);
+}
+.hero-depth.is-ready { opacity: 1; }
+.hero-depth-stars { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero-depth-orbits {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(150vmin, 1500px);
+  height: min(150vmin, 1500px);
+  transform: translate3d(calc(-50% + var(--px, 0px)), calc(-50% + var(--py, 0px)), 0);
+  transition: transform 1.4s cubic-bezier(.22, 1, .36, 1);
+}
+.hero-depth-orbits svg { width: 100%; height: 100%; overflow: visible; }
+.hero-depth-horizon {
+  position: absolute;
+  left: 50%;
+  bottom: -62vmax;
+  width: 150vmax;
+  height: 80vmax;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, transparent 88%, #ff6a3d26 94%, #ffb38a12 97%, transparent 100%);
+  box-shadow: 0 -2px 120px -40px #e8502a55;
+}
+
+@media (max-width: 700px) {
+  .hero-depth-orbits { width: 190vmin; height: 190vmin; }
+  .hero-depth-horizon { bottom: -70vmax; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-depth { transition: none; }
+  .hero-depth-orbits { transition: none; transform: translate(-50%, -50%); }
+}

@@ -103,15 +103,17 @@ test('head gate only covers eligible visits and exposes a controller-owned fail-
   assert.doesNotMatch(controller, /!root\.classList\.contains\('launch-pending'\)/, 'an expired head watchdog does not suppress a still-eligible intro');
 });
 
+// Re-approved 2026-10-29 (launch-experience redesign): flight-path process, connected proof card,
+// two-column FAQ, larger team portraits and the launch-trail quote band. Strip and services are unchanged.
 test('homepage preserves approved sections and the button-free service strip', async () => {
   const sectionStart = html.indexOf('  <div class="home-v2">');
   const sectionEnd = html.indexOf('</main>') + '</main>'.length;
   assert.ok(sectionStart >= 0 && sectionEnd > sectionStart);
-  assert.equal(sha256(html.slice(sectionStart, sectionEnd)), '09327acf0d3d1a79cf247bed6b16136ed617f2bcc8e4b2d374751c269cf9193b', 'all sections after the hero preserve the approved content and button-free strip');
+  assert.equal(sha256(html.slice(sectionStart, sectionEnd)), 'c141e1f8bee4d35b103c57fd1f74dbd3ecfc29a7395979ab90deef37bdcc4719', 'all sections after the hero preserve the approved content and button-free strip');
   assert.equal(sha256(html.match(/<footer\b[\s\S]*?<\/footer>/)?.[0]), '21a4572ccb4a98727ac37ebabefc02c906b06d3ae8ac258cefc31e742c11f8ab', 'footer retains Studio access');
   const css = await readFile(new URL('../css/homepage-v2.css', import.meta.url), 'utf8');
   const sectionStyles = css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\.nav[^{}]*\{[^}]*\}/gm, '').replace(/\s+/g, ' ').trim();
-  assert.equal(sha256(sectionStyles), '196f1d20e110e9e137c97f81a9028a446c14c203143a7030a0b9ba19a325be93', 'section styles preserve the approved layout and button-free strip');
+  assert.equal(sha256(sectionStyles), 'afb9a92b03c28c8b9992d076c0b09b46357461ab50d39b71c2c7580381c623ce', 'section styles preserve the approved layout and button-free strip');
   const script = await readFile(new URL('../js/homepage-v2.js', import.meta.url));
   assert.equal(sha256(script), '5f563cb504d44cb8087b5fbda0eddb13d202a0bc87859c8b04e77ae5c22d48d5', 'revolving service animation remains independent of the removed control');
 });

@@ -319,6 +319,27 @@
     $('#revenue-updated').textContent = summary ? `Updated ${new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(new Date())}` : '';
   }
 
+  function renderRevenueChart() {
+    const chart = $('#revenue-chart');
+    const items = invoiceHistory
+      .filter((item) => item.status !== 'Canceled' && Number.isFinite(item.cents))
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 10)
+      .reverse();
+    chart.hidden = items.length < 2;
+    if (chart.hidden) return;
+    const peak = Math.max(...items.map((item) => item.cents));
+    const paid = items.filter((item) => item.status === 'Paid');
+    const day = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+    $('#revenue-chart-title').textContent = `Last ${items.length} invoices`;
+    $('#revenue-bars').setAttribute('aria-label', `Last ${items.length} invoices: ${paid.length} paid, totaling ${formatMoney(paid.reduce((sum, item) => sum + item.cents, 0))}.`);
+    $('#revenue-bars').innerHTML = items.map((item) => {
+      const tone = item.status === 'Paid' ? 'is-paid' : item.status === 'Processing' ? 'is-processing' : 'is-open';
+      const height = Math.max(6, Math.round((item.cents / peak) * 100));
+      return `<span class="revenue-bar ${tone}" style="--h:${height}%" title="${escapeHtml(item.company)} · ${escapeHtml(item.amount)} · ${item.status}"><i></i><small>${day.format(new Date(item.createdAt))}</small></span>`;
+    }).join('');
+  }
+
   function setIntegrationStatus(id, name, connected) {
     const element = $(id);
     element.classList.toggle('is-connected', connected);
@@ -338,6 +359,7 @@
         company: item.company,
         description: item.description,
         amount: formatMoney(item.amount),
+        cents: item.amount,
         createdAt: new Date(item.created * 1000).toISOString(),
         status: item.status === 'succeeded' ? 'Paid' : item.status === 'processing' ? 'Processing' : item.status === 'canceled' ? 'Canceled' : 'Open',
         url: new URL(item.url?.startsWith('/invoice/') ? item.url : `/invoice/${encodeURIComponent(item.id)}`, location.origin).href
@@ -347,7 +369,9 @@
       renderFinanceSummary(status.summary, invoiceHistoryError || (!status.stripeConnected ? 'Connect Stripe to see payments and revenue.' : ''));
       renderRecentPayments();
       renderRecentPaid();
+      renderRevenueChart();
     } catch (error) {
+      $('#revenue-chart').hidden = true;
       setIntegrationStatus('#stripe-status', 'Stripe', false);
       setIntegrationStatus('#quo-status', 'Quo', false);
       invoiceHistoryError = 'Payment history could not load.';
