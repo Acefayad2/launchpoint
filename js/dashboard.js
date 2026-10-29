@@ -13,13 +13,24 @@
   let recentPaid = [];
   let invoiceHistoryError = '';
   let paymentRefreshTimer = null;
+  let renderedProjectId = null;
+  const projectDrafts = new Map();
+  const savingProjects = new Set();
+  const savingRequests = new Set();
+  const invitingClients = new Set();
+  const uploadingClients = new Set();
+  const syncingSubscriptions = new Set();
+  const projectNotices = new Map();
+  const projectFields = ['business', 'contact', 'email', 'project', 'status', 'summary', 'nextStep', 'nextCopy', 'targetDate', 'supportPlan', 'stripeSubscriptionId'];
+  const requestStates = { submitted: 'Submitted', in_progress: 'In progress', needs_info: 'Needs information', completed: 'Completed' };
   const formatMoney = (cents) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100);
 
   const headings = {
     overview: ['LaunchPoint / home', 'Your business, today.', 'Payments, clients, and the next move in one place.'],
     clients: ['Client roster', 'Every client, one clear view.', 'Track the work, the next decision, and the last conversation.'],
     messages: ['Client care', 'Keep the work moving.', 'Reply without losing the project context around the conversation.'],
-    payments: ['LaunchPoint / invoices', 'Create an invoice.', 'A secure payment page for your client, ready in seconds.']
+    payments: ['LaunchPoint / invoices', 'Create an invoice.', 'A secure payment page for your client, ready in seconds.'],
+    project: ['LaunchPoint / projects', 'Keep everyone in the loop.', 'Progress, client feedback, and shared files — from kickoff to ongoing support.']
   };
 
   const activeClient = () => clients.find((client) => client.id === activeClientId) || clients[0];
@@ -40,7 +51,7 @@
   function setView(view) {
     $$('[data-view-panel]').forEach((panel) => { panel.hidden = panel.dataset.viewPanel !== view; });
     $$('.nav-item').forEach((button) => {
-      const isActive = button.dataset.view === view;
+      const isActive = button.dataset.view === view || (view === 'project' && button.dataset.view === 'clients');
       button.classList.toggle('is-active', isActive);
       isActive ? button.setAttribute('aria-current', 'page') : button.removeAttribute('aria-current');
     });
@@ -52,6 +63,7 @@
     $('#new-invoice-button').hidden = view === 'payments';
     if (view === 'messages') renderMessages();
     if (view === 'clients') renderClients();
+    if (view === 'project') renderProject();
     if (view === 'overview') {
       renderRecentPaid();
       loadPaymentStatus();
@@ -60,7 +72,8 @@
       renderRecentPayments();
       loadPaymentStatus();
     }
-    history.replaceState({}, '', view === 'overview' ? 'dashboard.html' : `dashboard.html?view=${view}`);
+    const projectQuery = view === 'project' && activeClientId ? `&client=${encodeURIComponent(activeClientId)}` : '';
+    history.replaceState({}, '', view === 'overview' ? 'dashboard.html' : `dashboard.html?view=${view}${projectQuery}`);
   }
 
   function renderMetrics() {
@@ -75,13 +88,14 @@
   }
 
   function renderAttention() {
-    const priority = clients.filter((client) => client.status !== 'untracked').sort((a, b) => b.unread - a.unread).slice(0, 4);
+    const needsAttention = (client) => (client.requests || []).filter((request) => request.status === 'submitted').length + client.unread;
+    const priority = clients.filter((client) => client.status !== 'untracked').sort((a, b) => needsAttention(b) - needsAttention(a)).slice(0, 4);
     $('#attention-list').innerHTML = priority.length ? priority.map((client, index) => `
       <button class="attention-row" type="button" data-open-client="${client.id}">
         <span class="attention-number">${String(index + 1).padStart(2, '0')}</span>
         <span class="client-mark">${Portal.initials(client.business)}</span>
         <span class="attention-copy"><strong>${escapeHtml(client.business)}</strong><small>${escapeHtml(client.project)}</small></span>
-        <span class="attention-task">${escapeHtml(client.nextStep)}</span>
+        <span class="attention-task">${(client.requests || []).some((request) => request.status === 'submitted') ? `${(client.requests || []).filter((request) => request.status === 'submitted').length} new edit request(s)` : escapeHtml(client.nextStep)}</span>
         ${client.unread ? `<span class="unread-badge">${client.unread} new</span>` : `<span class="status-chip status-${client.status}">${client.status}</span>`}
         <span class="row-arrow" aria-hidden="true">→</span>
       </button>`).join('') : '<div class="inline-empty">Add your first client to begin.</div>';
@@ -105,7 +119,7 @@
         <td><span class="status-chip status-${client.status}">${client.status}</span></td>
         <td>${escapeHtml(client.nextStep)}</td>
         <td>${escapeHtml(client.lastContact)}${client.unread ? `<span class="message-count">${client.unread}</span>` : ''}</td>
-        <td><button class="table-open" type="button" aria-label="Open ${escapeHtml(client.business)}">→</button></td>
+        <td><button class="table-open" type="button" aria-label="Open project workspace for ${escapeHtml(client.business)}">→</button></td>
       </tr>`).join('');
     $('#clients-empty').hidden = visible.length > 0;
   }
@@ -154,10 +168,115 @@
       <div class="context-next"><span>Next step</span><strong>${escapeHtml(client.nextStep)}</strong><p>${escapeHtml(client.nextCopy)}</p></div>`;
   }
 
+  const portalUrl = (client) => new URL(`client.html?id=${encodeURIComponent(client.slug)}`, location.href).href;
+  const projectForm = () => $('#project-form');
+  const formField = (name) => projectForm().elements.namedItem(name);
+  const readableSize = (size) => size < 1024 * 1024 ? `${Math.max(1, Math.round(size / 1024))} KB` : `${(size / (1024 * 1024)).toFixed(1)} MB`;
+
+  function readProjectDraft() {
+    const draft = Object.fromEntries(projectFields.map((name) => [name, formField(name).value.trim()]));
+    draft.milestones = $$('.project-milestone-row', projectForm()).map((row, position) => ({
+      ...(row.dataset.milestoneId ? { id: row.dataset.milestoneId } : {}),
+      label: $('[data-milestone-label]', row).value.trim(), state: $('[data-milestone-state]', row).value, position
+    }));
+    return draft;
+  }
+
+  function rememberProjectDraft() {
+    if (!renderedProjectId) return;
+    projectDrafts.set(renderedProjectId, readProjectDraft());
+    $('#project-draft-state').textContent = 'Unsaved changes';
+    $('#project-save-status').textContent = '';
+    $('#revert-project').disabled = false;
+  }
+
+  function milestoneRow(item, index) {
+    return `<div class="project-milestone-row"${item.id ? ` data-milestone-id="${escapeHtml(item.id)}"` : ''}>
+      <span class="project-step-number" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span>
+      <label><span class="sr-only">Step ${index + 1} name</span><input data-milestone-label required maxlength="120" value="${escapeHtml(item.label)}" placeholder="Name this step"></label>
+      <label><span class="sr-only">Step ${index + 1} status</span><select data-milestone-state>${Object.entries({ upcoming: 'Upcoming', current: 'In progress', complete: 'Complete' }).map(([value, label]) => `<option value="${value}"${item.state === value ? ' selected' : ''}>${label}</option>`).join('')}</select></label>
+      <button type="button" class="project-remove-step" data-remove-milestone aria-label="Remove step ${index + 1}">×</button>
+    </div>`;
+  }
+
+  function renderProjectEditor(client, force = false) {
+    if (renderedProjectId !== client.id || force) {
+      const switchedClient = renderedProjectId !== client.id;
+      const draft = projectDrafts.get(client.id) || client;
+      projectFields.forEach((name) => { formField(name).value = draft[name] || ''; });
+      $('#project-milestone-editor').innerHTML = (draft.milestones || []).map(milestoneRow).join('') || '<p class="project-empty-steps">Add the steps your client will follow from kickoff to launch.</p>';
+      renderedProjectId = client.id;
+      $('#project-save-status').textContent = '';
+      if (switchedClient) {
+        $('#project-upload').value = '';
+        $('#project-upload-status').textContent = '';
+        $('#project-request-status').textContent = '';
+        $('#project-subscription-message').textContent = '';
+      }
+    }
+    $('#project-draft-state').textContent = projectDrafts.has(client.id) ? 'Unsaved changes' : 'Saved';
+    $('#project-fields').disabled = savingProjects.has(client.id);
+    $('#save-project').disabled = savingProjects.has(client.id);
+    $('#revert-project').disabled = savingProjects.has(client.id) || !projectDrafts.has(client.id);
+    $('#add-project-milestone').disabled = savingProjects.has(client.id) || $$('.project-milestone-row', projectForm()).length >= 12;
+  }
+
+  function renderProjectRequests(client) {
+    const requests = client.requests || [];
+    $('#project-request-count').textContent = requests.length ? `(${requests.length})` : '';
+    $('#project-request-list').innerHTML = requests.length ? requests.map((request) => {
+      const attachments = (client.files || []).filter((file) => file.requestId === request.id);
+      let pageLink = '';
+      try {
+        const url = new URL(request.pageUrl);
+        if (['https:', 'http:'].includes(url.protocol)) pageLink = `<a href="${escapeHtml(url.href)}" target="_blank" rel="noopener noreferrer">View referenced page ↗</a>`;
+      } catch (_) { /* An edit does not have to reference a page. */ }
+      return `<article class="project-request-item"><div class="project-request-top"><div><h4>${escapeHtml(request.title)}</h4><time datetime="${escapeHtml(request.createdAt)}">${escapeHtml(Portal.formatTime(request.createdAt))}</time></div><label><span class="sr-only">Status for ${escapeHtml(request.title)}</span><select data-request-status="${escapeHtml(request.id)}"${savingRequests.has(request.id) ? ' disabled' : ''}>${Object.entries(requestStates).map(([value, label]) => `<option value="${value}"${request.status === value ? ' selected' : ''}>${label}</option>`).join('')}</select></label></div><p>${escapeHtml(request.description)}</p>${pageLink}${attachments.length ? `<div class="project-request-attachments">${attachments.map((file) => `<button type="button" data-project-file="${escapeHtml(file.id)}">↗ ${escapeHtml(file.filename)}</button>`).join('')}</div>` : ''}</article>`;
+    }).join('') : '<div class="project-empty"><span aria-hidden="true">↗</span><h4>No edit requests yet</h4><p>Send the portal link so your client can leave their first round of feedback here.</p></div>';
+  }
+
+  function renderProjectFiles(client) {
+    const files = client.files || [];
+    $('#project-file-count').textContent = files.length;
+    $('#project-file-list').innerHTML = files.length ? files.map((file) => `<button class="project-file-item" type="button" data-project-file="${escapeHtml(file.id)}"><span class="project-file-type">${escapeHtml(file.filename.split('.').pop().slice(0, 5).toUpperCase())}</span><span><strong>${escapeHtml(file.filename)}</strong><small>${readableSize(file.size)} · ${escapeHtml(Portal.formatTime(file.createdAt))}</small></span><span aria-hidden="true">↗</span></button>`).join('') : '<p class="project-file-empty">Shared files will appear here. Downloads are private to this project.</p>';
+  }
+
+  function renderProject(force = false) {
+    const client = activeClient();
+    if (!client) return;
+    $('#project-business-name').textContent = client.business;
+    $('#project-project-name').textContent = client.project;
+    $('#project-message-count').textContent = client.unread ? `(${client.unread} new)` : '';
+    const statusLabels = { active: 'In progress', waiting: 'Waiting for client', complete: 'Complete', untracked: 'Not yet tracked' };
+    $('#project-badges').innerHTML = `<span class="status-chip status-${escapeHtml(client.status)}">${escapeHtml(statusLabels[client.status] || client.status)}</span><span class="project-access-badge">${client.canSubmitEdits ? 'Edits open' : 'Edits closed'}</span>${client.supportStatus === 'active' ? '<span class="project-access-badge">Ongoing support</span>' : ''}`;
+    $('#project-progress').value = client.progress || 0;
+    $('#project-progress-label').textContent = client.progress == null ? 'Progress not tracked' : `${client.progress}% complete`;
+    $('#project-progress-copy').textContent = client.milestones.length ? `${client.milestones.filter((step) => step.state === 'complete').length} of ${client.milestones.length} milestones complete` : 'Add milestones below to start tracking progress.';
+    $('#project-portal-url').value = portalUrl(client);
+    $('#project-email-invite').disabled = !client.email || savingProjects.has(client.id) || invitingClients.has(client.id);
+    $('#project-upload').disabled = uploadingClients.has(client.id);
+    $('#project-upload-form [type="submit"]').disabled = uploadingClients.has(client.id);
+    $('#project-access-note').textContent = client.email ? `Only ${client.email} can sign in as this client. Save email changes before sending an invitation.` : 'Add and save the client email to enable their private portal access.';
+    $('#project-invite-status').textContent = projectNotices.get(client.id) || '';
+    $('#project-subscription-state').textContent = client.stripeSubscriptionId ? `Stripe status: ${client.subscriptionStatus || 'Not verified yet'}` : 'No subscription linked';
+    $('#project-subscription-check').textContent = client.subscriptionCheckedAt ? `Status checked ${Portal.formatTime(client.subscriptionCheckedAt)}` : 'Save the subscription ID, then sync to verify paid access.';
+    $('#project-sync-subscription').disabled = !client.stripeSubscriptionId || syncingSubscriptions.has(client.id) || savingProjects.has(client.id);
+    renderProjectEditor(client, force);
+    renderProjectRequests(client);
+    renderProjectFiles(client);
+  }
+
+  function openProject(id) {
+    if (!clients.some((client) => client.id === id)) return;
+    activeClientId = id;
+    setView('project');
+  }
+
   async function refresh() {
     clients = await Portal.loadClients();
     if (!activeClientId || !clients.some((client) => client.id === activeClientId)) activeClientId = clients[0]?.id || null;
     renderMetrics(); renderAttention(); renderClients(); renderMessages();
+    if (!$('#project-view').hidden) renderProject();
   }
 
   function saveRecentPayment(payment) {
@@ -272,8 +391,10 @@
         clearTimeout(initialize.realtimeTimer);
         initialize.realtimeTimer = setTimeout(() => refresh().catch(console.error), 250);
       });
-      const initialView = new URLSearchParams(location.search).get('view');
-      setView(['overview', 'clients', 'messages', 'payments'].includes(initialView) ? initialView : 'overview');
+      const params = new URLSearchParams(location.search);
+      const initialView = params.get('view');
+      if (initialView === 'project' && clients.some((client) => client.id === params.get('client'))) activeClientId = params.get('client');
+      setView(['overview', 'clients', 'messages', 'payments', ...(clients.length ? ['project'] : [])].includes(initialView) ? initialView : 'overview');
       clearInterval(paymentRefreshTimer);
       paymentRefreshTimer = setInterval(() => {
         if (!document.hidden && !$('#overview-view').hidden) loadPaymentStatus();
@@ -312,8 +433,8 @@
   $('#refresh-revenue').addEventListener('click', loadPaymentStatus);
   $$('.nav-item').forEach((button) => button.addEventListener('click', () => setView(button.dataset.view)));
   $$('[data-view-jump]').forEach((button) => button.addEventListener('click', () => setView(button.dataset.viewJump)));
-  $('#attention-list').addEventListener('click', (event) => { const row = event.target.closest('[data-open-client]'); if (row) openClient(row.dataset.openClient); });
-  $('#client-table-body').addEventListener('click', (event) => { const row = event.target.closest('[data-open-client]'); if (row) openClient(row.dataset.openClient); });
+  $('#attention-list').addEventListener('click', (event) => { const row = event.target.closest('[data-open-client]'); if (row) openProject(row.dataset.openClient); });
+  $('#client-table-body').addEventListener('click', (event) => { const row = event.target.closest('[data-open-client]'); if (row) openProject(row.dataset.openClient); });
   $('#thread-list').addEventListener('click', (event) => { const row = event.target.closest('[data-thread-id]'); if (row) openClient(row.dataset.threadId); });
   $('#client-search').addEventListener('input', renderClients);
   $('#thread-search').addEventListener('input', renderThreadList);
@@ -322,6 +443,185 @@
     $$('.filter-button').forEach((item) => item.classList.toggle('is-active', item === button));
     renderClients();
   }));
+
+  projectForm().addEventListener('input', rememberProjectDraft);
+  projectForm().addEventListener('change', rememberProjectDraft);
+  $('#add-project-milestone').addEventListener('click', () => {
+    const editor = $('#project-milestone-editor');
+    const rows = $$('.project-milestone-row', editor);
+    if (rows.length >= 12) return;
+    $('.project-empty-steps', editor)?.remove();
+    editor.insertAdjacentHTML('beforeend', milestoneRow({ label: '', state: 'upcoming' }, rows.length));
+    rememberProjectDraft();
+    $('#add-project-milestone').disabled = rows.length + 1 >= 12;
+    $$('.project-milestone-row input', editor).at(-1).focus();
+  });
+  $('#project-milestone-editor').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-remove-milestone]');
+    if (!button) return;
+    button.closest('.project-milestone-row').remove();
+    rememberProjectDraft();
+    $('#project-milestone-editor').innerHTML = readProjectDraft().milestones.map(milestoneRow).join('') || '<p class="project-empty-steps">Add the steps your client will follow from kickoff to launch.</p>';
+    $('#add-project-milestone').disabled = false;
+  });
+  $('#revert-project').addEventListener('click', () => {
+    const client = activeClient(); if (!client) return;
+    projectDrafts.delete(client.id);
+    renderProject(true);
+  });
+  projectForm().addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const client = activeClient();
+    if (!client || savingProjects.has(client.id)) return;
+    const draft = readProjectDraft();
+    savingProjects.add(client.id);
+    renderProjectEditor(client);
+    $('#project-save-status').textContent = 'Saving the project and progress tracker…';
+    try {
+      await Portal.updateProject(client.id, draft);
+      projectDrafts.delete(client.id);
+      await refresh();
+      if (activeClientId === client.id) {
+        renderProject(true);
+        $('#project-save-status').textContent = 'Saved. These updates are now available in the client portal.';
+      }
+      showToast('Project updated');
+    } catch (error) {
+      if (activeClientId === client.id) $('#project-save-status').textContent = error.message;
+      else showToast(`Could not save ${client.business}: ${error.message}`);
+    } finally {
+      savingProjects.delete(client.id);
+      if (activeClientId === client.id) renderProject();
+    }
+  });
+  $('#project-messages-button').addEventListener('click', () => { const client = activeClient(); if (client) openClient(client.id); });
+  $('#conversation-open-project').addEventListener('click', () => { const client = activeClient(); if (client) openProject(client.id); });
+  $('#message-project-files').addEventListener('click', () => {
+    const client = activeClient(); if (!client) return;
+    openProject(client.id);
+    $('#project-upload').focus();
+  });
+  $('#project-copy-link').addEventListener('click', async () => {
+    const client = activeClient(); if (!client) return;
+    try { await navigator.clipboard.writeText(portalUrl(client)); showToast('Private portal link copied'); }
+    catch (_) { $('#project-portal-url').focus(); $('#project-portal-url').select(); showToast('Select and copy the portal address'); }
+  });
+  $('#project-open-portal').addEventListener('click', () => { const client = activeClient(); if (client) window.open(portalUrl(client), '_blank', 'noopener'); });
+  $('#project-email-invite').addEventListener('click', async () => {
+    const client = activeClient(); if (!client?.email || invitingClients.has(client.id)) return;
+    if (formField('email').value.trim().toLowerCase() !== client.email.toLowerCase()) {
+      projectNotices.set(client.id, 'Save the client email changes before sending an invitation.');
+      renderProject();
+      return;
+    }
+    invitingClients.add(client.id);
+    projectNotices.set(client.id, 'Sending the secure sign-in invitation…');
+    renderProject();
+    try {
+      await Portal.sendMagicLink(client.email, portalUrl(client));
+      projectNotices.set(client.id, `Invitation sent to ${client.email}. The client can open their secure email link to sign in.`);
+    } catch (error) {
+      projectNotices.set(client.id, `Invitation could not be sent: ${error.message} You can still copy the portal link above.`);
+    } finally {
+      invitingClients.delete(client.id);
+      if (activeClientId === client.id) renderProject();
+    }
+  });
+  $('#project-sync-subscription').addEventListener('click', async () => {
+    const client = activeClient(); if (!client?.stripeSubscriptionId || syncingSubscriptions.has(client.id)) return;
+    if (formField('stripeSubscriptionId').value.trim() !== client.stripeSubscriptionId || formField('email').value.trim() !== client.email) {
+      $('#project-subscription-message').textContent = 'Save the email and subscription ID changes before syncing with Stripe.';
+      return;
+    }
+    syncingSubscriptions.add(client.id);
+    $('#project-subscription-message').textContent = 'Checking the saved subscription with Stripe…';
+    renderProject();
+    try {
+      await Portal.syncSubscription(client.id);
+      await refresh();
+      if (activeClientId === client.id) $('#project-subscription-message').textContent = 'Subscription checked. Client edit access reflects the verified payment status.';
+    } catch (error) {
+      if (activeClientId === client.id) $('#project-subscription-message').textContent = error.message;
+      else showToast(error.message);
+    } finally {
+      syncingSubscriptions.delete(client.id);
+      if (activeClientId === client.id) renderProject();
+    }
+  });
+  $('#project-request-list').addEventListener('change', async (event) => {
+    const select = event.target.closest('[data-request-status]');
+    if (!select) return;
+    const clientId = activeClientId;
+    const requestId = select.dataset.requestStatus;
+    savingRequests.add(requestId); select.disabled = true;
+    $('#project-request-status').textContent = 'Updating request status…';
+    try {
+      await Portal.updateEditRequest(requestId, select.value);
+      await refresh();
+      if (activeClientId === clientId) $('#project-request-status').textContent = 'Request status updated in the client portal.';
+    } catch (error) {
+      if (activeClientId === clientId) $('#project-request-status').textContent = error.message;
+    } finally {
+      savingRequests.delete(requestId);
+      if (activeClientId === clientId) renderProjectRequests(activeClient());
+    }
+  });
+  $('#project-upload-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const client = activeClient(); if (!client || uploadingClients.has(client.id)) return;
+    const files = [...$('#project-upload').files];
+    const status = $('#project-upload-status');
+    if (!files.length) return status.textContent = 'Choose at least one file to upload.';
+    if (files.length > 5) return status.textContent = 'Choose no more than 5 files at a time.';
+    if (files.some((file) => file.size > 10 * 1024 * 1024 || file.size === 0)) return status.textContent = 'Each file must be between 1 byte and 10 MB.';
+    if (files.some((file) => !/\.(pdf|png|jpe?g|webp|txt|docx|zip)$/i.test(file.name))) return status.textContent = 'Use PDF, PNG, JPEG, WEBP, TXT, DOCX, or ZIP files.';
+    uploadingClients.add(client.id);
+    renderProject();
+    let uploaded = 0;
+    try {
+      for (const file of files) {
+        if (activeClientId === client.id) status.textContent = `Uploading ${uploaded + 1} of ${files.length}: ${file.name}`;
+        await Portal.uploadProjectFile(client.id, file);
+        uploaded += 1;
+      }
+      await refresh();
+      if (activeClientId === client.id) {
+        $('#project-upload').value = '';
+        status.textContent = `${uploaded} file${uploaded === 1 ? '' : 's'} shared with the client.`;
+      }
+    } catch (error) {
+      if (activeClientId === client.id) {
+        status.textContent = `${uploaded ? `${uploaded} file(s) saved. ` : ''}${error.message}${uploaded ? ' Reselect only the remaining files to retry.' : ''}`;
+        if (uploaded) $('#project-upload').value = '';
+      }
+      if (uploaded) await refresh().catch(() => {});
+    } finally {
+      uploadingClients.delete(client.id);
+      if (activeClientId === client.id) renderProject();
+    }
+  });
+  $('#project-view').addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-project-file]');
+    if (!button) return;
+    const client = activeClient();
+    const file = client?.files?.find((item) => item.id === button.dataset.projectFile);
+    if (!file) return;
+    button.disabled = true;
+    const downloadWindow = window.open('about:blank', '_blank');
+    if (downloadWindow) downloadWindow.opener = null;
+    try {
+      const url = new URL(await Portal.getProjectFileUrl(file));
+      if (url.protocol !== 'https:') throw new Error('The file download link was not secure. Please try again.');
+      if (downloadWindow) downloadWindow.location.href = url.href;
+      else showToast('Allow pop-ups and open the file again.');
+    } catch (error) { downloadWindow?.close(); showToast(error.message); }
+    finally { button.disabled = false; }
+  });
+  window.addEventListener('beforeunload', (event) => {
+    if (!projectDrafts.size) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
 
   $('#message-form').addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -397,12 +697,32 @@
     const submitter = event.submitter;
     if (!submitter || submitter.value !== 'save') return;
     event.preventDefault(); submitter.disabled = true;
-    const data = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const data = Object.fromEntries(new FormData(form));
+    const shouldInvite = $('#client-send-invite').checked;
+    delete data.sendInvite;
+    $('#client-create-status').textContent = 'Creating the private client workspace…';
+    let created;
     try {
-      await Portal.createClient(Object.fromEntries(data));
-      event.currentTarget.reset(); dialog.close(); await refresh(); showToast('Client added securely');
-    } catch (error) { showToast(error.message); }
+      created = await Portal.createClient(data);
+    } catch (error) { $('#client-create-status').textContent = error.message; return; }
     finally { submitter.disabled = false; }
+    form.reset(); dialog.close();
+    $('#client-create-status').textContent = '';
+    projectNotices.set(created.id, shouldInvite ? 'Sending the secure sign-in invitation…' : 'Client created. Copy the portal link or email an invitation when you are ready.');
+    if (shouldInvite) invitingClients.add(created.id);
+    try { await refresh(); openProject(created.id); }
+    catch (_) { showToast('Client created. Reload the workspace to view it.'); }
+    if (shouldInvite) {
+      try {
+        await Portal.sendMagicLink(data.email, portalUrl(created));
+        projectNotices.set(created.id, `Invitation sent to ${data.email}. The client can sign in from their secure email link.`);
+      } catch (error) {
+        projectNotices.set(created.id, `Client created, but the invitation could not be sent: ${error.message} Copy the portal link above or retry the invitation. Do not create the client again.`);
+      } finally { invitingClients.delete(created.id); }
+    }
+    if (activeClientId === created.id) renderProject();
+    showToast('Client workspace created');
   });
 
   const commandMenu = $('#command-menu');
