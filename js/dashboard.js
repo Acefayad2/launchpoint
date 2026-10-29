@@ -270,6 +270,7 @@
     if (!clients.some((client) => client.id === id)) return;
     activeClientId = id;
     setView('project');
+    window.scrollTo?.({ top: 0, behavior: 'instant' });
   }
 
   async function refresh() {
