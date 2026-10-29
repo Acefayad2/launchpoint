@@ -11,23 +11,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Orbitron:wght@500;600;700;800&family=Red+Hat+Display:wght@500;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/neural-theme.css?v=20261029-9">
+  <link rel="stylesheet" href="css/neural-theme.css?v=20261029-10">
+  <link rel="preload" href="assets/launchpoint-rocket.svg?v=2" as="image" type="image/svg+xml">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
 
   <div class="launch-intro" id="launch-intro">
-    <div class="launch-intro-stage" aria-hidden="true">
-      <div class="launch-intro-glow"></div>
-      <div class="launch-intro-ship launch-intro-ship-left"><img src="assets/launchpoint-rocket.svg" alt=""><span class="launch-intro-flame"></span></div>
-      <div class="launch-intro-ship launch-intro-ship-center"><img src="assets/launchpoint-rocket.svg" alt=""><span class="launch-intro-flame"></span></div>
-      <div class="launch-intro-ship launch-intro-ship-right"><img src="assets/launchpoint-rocket.svg" alt=""><span class="launch-intro-flame"></span></div>
-      <div class="launch-intro-plume launch-intro-plume-left"></div>
-      <div class="launch-intro-plume launch-intro-plume-center"></div>
-      <div class="launch-intro-plume launch-intro-plume-right"></div>
+    <div class="launch-intro-ship" aria-hidden="true">
+      <img src="assets/launchpoint-rocket.svg?v=2" alt="" width="240" height="720" fetchpriority="high">
+      <span class="launch-intro-flame"></span>
     </div>
-    <div class="launch-intro-panel launch-intro-panel-left" aria-hidden="true"></div>
-    <div class="launch-intro-panel launch-intro-panel-right" aria-hidden="true"></div>
     <button class="launch-intro-skip" id="launch-intro-skip" type="button">Skip intro</button>
   </div>
 
@@ -299,6 +293,6 @@
 
   <script src="js/main.js"></script>
   <script src="js/hero-webgl.js?v=20261029-1" defer></script>
-  <script src="js/launch-intro.js?v=20261029-3" defer></script>
+  <script src="js/launch-intro.js?v=20261029-4" defer></script>
 </body>
 </html>

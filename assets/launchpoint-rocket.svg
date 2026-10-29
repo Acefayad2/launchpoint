@@ -1,31 +1,88 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 330" role="img" aria-label="Rocket">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 720" fill="none">
   <defs>
-    <linearGradient id="hull" x1="0" y1="0" x2="1" y2="0">
-      <stop stop-color="#64707a"/>
-      <stop offset=".2" stop-color="#f1f0e9"/>
-      <stop offset=".52" stop-color="#bfc6c9"/>
-      <stop offset=".77" stop-color="#f6f3e9"/>
-      <stop offset="1" stop-color="#5e6871"/>
+    <linearGradient id="hull" x1="72" y1="340" x2="169" y2="340" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#11171d"/><stop offset=".16" stop-color="#343e47"/>
+      <stop offset=".3" stop-color="#727c85"/><stop offset=".38" stop-color="#515c66"/>
+      <stop offset=".65" stop-color="#303842"/><stop offset=".89" stop-color="#1b222b"/><stop offset="1" stop-color="#11171e"/>
     </linearGradient>
-    <linearGradient id="nose" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#faf7ef"/>
-      <stop offset="1" stop-color="#89939d"/>
+    <linearGradient id="nose" x1="91" y1="90" x2="153" y2="143" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#818b92"/><stop offset=".3" stop-color="#505c67"/>
+      <stop offset=".72" stop-color="#2b333d"/><stop offset="1" stop-color="#131c25"/>
     </linearGradient>
-    <linearGradient id="fin" x1="0" y1="0" x2="1" y2="0">
-      <stop stop-color="#cf553d"/>
-      <stop offset="1" stop-color="#742c29"/>
+    <linearGradient id="wing" x1="30" y1="525" x2="114" y2="590" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6d7882"/><stop offset=".13" stop-color="#3d4752"/>
+      <stop offset=".55" stop-color="#252e38"/><stop offset="1" stop-color="#111820"/>
+    </linearGradient>
+    <linearGradient id="wing-right" x1="151" y1="514" x2="216" y2="617" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4f5964"/><stop offset=".45" stop-color="#2a333e"/><stop offset="1" stop-color="#131a23"/>
+    </linearGradient>
+    <linearGradient id="pod" x1="53" y1="460" x2="88" y2="460" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#19212a"/><stop offset=".35" stop-color="#65717c"/>
+      <stop offset=".55" stop-color="#414d59"/><stop offset="1" stop-color="#141c25"/>
+    </linearGradient>
+    <linearGradient id="engine" x1="92" y1="660" x2="148" y2="660" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#141a21"/><stop offset=".26" stop-color="#707780"/>
+      <stop offset=".42" stop-color="#343d49"/><stop offset=".75" stop-color="#242c37"/><stop offset="1" stop-color="#101720"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="106" y1="166" x2="138" y2="211" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#91a5ad"/><stop offset=".15" stop-color="#405762"/>
+      <stop offset=".5" stop-color="#172a37"/><stop offset="1" stop-color="#0b151f"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="84" y1="200" x2="98" y2="590" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#d6e1e5" stop-opacity=".65"/><stop offset=".5" stop-color="#9caab5" stop-opacity=".32"/><stop offset="1" stop-color="#9caab5" stop-opacity=".06"/>
     </linearGradient>
   </defs>
-  <path d="M40 67C44 38 51 17 60 5c9 12 16 33 20 62v206H40Z" fill="url(#hull)" stroke="#f7f5ed" stroke-opacity=".45"/>
-  <path d="M40 67C44 38 51 17 60 5c9 12 16 33 20 62Z" fill="url(#nose)"/>
-  <path d="M40 72h40v15H40Z" fill="#263039"/>
-  <path d="M40 94h40v5H40Z" fill="#e46a48"/>
-  <path d="M40 253 14 293v25l26-19Z" fill="url(#fin)"/>
-  <path d="m80 253 26 40v25l-26-19Z" fill="url(#fin)"/>
-  <path d="M42 273h36v27H42Z" fill="#39434b"/>
-  <path d="M49 300h22v18H49Z" fill="#1c242b"/>
-  <path d="M49 300h22" stroke="#f1a27e" stroke-width="2"/>
-  <path d="M55 116h10v103H55Z" fill="#8c969b" opacity=".42"/>
-  <path d="M43 231h34" stroke="#56616a" stroke-width="3"/>
-  <path d="M43 245h34" stroke="#56616a" stroke-width="3"/>
+
+  <!-- Swept graphite stabilizers with a thin, light-catching bevel. -->
+  <path d="m79 432-15 65-39 91v61l60-37 17-59Z" fill="url(#wing)" stroke="#74818b" stroke-opacity=".42"/>
+  <path d="m161 432 15 65 39 91v61l-60-37-17-59Z" fill="url(#wing-right)" stroke="#74818b" stroke-opacity=".28"/>
+  <path d="m79 448-12 54-36 89v43l40-34 18-57" stroke="#929ca5" stroke-opacity=".35"/>
+  <path d="m161 448 12 54 36 89v43l-40-34-18-57" stroke="#788590" stroke-opacity=".24"/>
+  <path d="m29 613 36-27m146 27-36-27" stroke="#0a1119" stroke-width="3"/>
+
+  <!-- Tapered pressure hull. Everything outside the rocket is transparent. -->
+  <path d="M120 18C107 39 88 90 82 137c-6 51-8 101-8 150v214l12 102 17 31h34l17-31 12-102V287c0-49-2-99-8-150-6-47-25-98-38-119Z" fill="url(#hull)" stroke="#8996a1" stroke-opacity=".52"/>
+  <path d="M120 18C107 39 88 90 82 137l76 0C152 90 133 39 120 18Z" fill="url(#nose)"/>
+  <path d="M119 28C105 59 91 102 87 132" stroke="#d2dde2" stroke-opacity=".48" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M82 138c23 4 53 4 76 0" stroke="#0d141d" stroke-width="3"/>
+  <path d="M83 141c24 3 50 3 74 0" stroke="#a3afb7" stroke-opacity=".3"/>
+  <path d="M87 151c-5 61-6 119-6 173v174l12 97" stroke="url(#rim)" stroke-width="2"/>
+  <path d="m143 145 6 148-2 212-12 97h14l12-101V287l-7-141Z" fill="#0b141d" opacity=".32"/>
+
+  <!-- Recessed flight glass and machined access panels. -->
+  <path d="m109 163-9 28 3 24h34l3-24-9-28Z" fill="#111b24" stroke="#7b8993" stroke-opacity=".65" stroke-width="2"/>
+  <path d="m111 167-7 25 2 19h28l2-19-7-25Z" fill="url(#glass)"/>
+  <path d="m110 171-5 20h29" stroke="#b9d2db" stroke-opacity=".35"/>
+  <path d="M120 168v43" stroke="#1b2833" stroke-width="2"/>
+  <path d="M77 237c29 4 57 4 86 0m-87 5c28 4 58 4 88 0" stroke="#0a121a" stroke-opacity=".75"/>
+  <path d="M79 244c27 3 55 3 82 0" stroke="#8e9ca8" stroke-opacity=".24"/>
+  <path d="M98 276h44v93H98z" fill="#28323c" fill-opacity=".4" stroke="#9faab3" stroke-opacity=".24"/>
+  <path d="M104 282h32v81h-32z" stroke="#131d27" stroke-opacity=".8"/>
+  <path d="M115 294h10v43h-10z" fill="#a2adb6" fill-opacity=".18"/>
+  <path d="M109 351h22m-22 5h22" stroke="#121d28" stroke-width="2"/>
+  <g fill="#b4bdc5" opacity=".48">
+    <circle cx="102" cy="280" r="1.25"/><circle cx="138" cy="280" r="1.25"/>
+    <circle cx="102" cy="365" r="1.25"/><circle cx="138" cy="365" r="1.25"/>
+  </g>
+  <path d="M76 391c28 4 60 4 88 0m-86 6c27 4 57 4 84 0" stroke="#0e1722" stroke-width="2"/>
+  <path d="m97 413-4 110 13 70h28l13-70-4-110" stroke="#98a6b0" stroke-opacity=".22"/>
+  <path d="m104 432-1 83 9 49h16l9-49-1-83" fill="#151f29" fill-opacity=".52"/>
+  <path d="M116 443h8v28h-8z" fill="#8498a5" fill-opacity=".55"/>
+  <path d="M117 445h2v24h-2z" fill="#d0e8ee" fill-opacity=".7"/>
+
+  <!-- Paired structural pods and small thermal vents. -->
+  <path d="m70 372-12 30-5 148 10 65h22l-2-194-6-42Z" fill="url(#pod)" stroke="#7c8994" stroke-opacity=".4"/>
+  <path d="m170 372 12 30 5 148-10 65h-22l2-194 6-42Z" fill="#25303b" stroke="#7c8994" stroke-opacity=".32"/>
+  <path d="m169 383-6 38-2 181h9l8-51-3-148Z" fill="#465460" fill-opacity=".5"/>
+  <path d="M60 425h20m-21 7h21m-22 7h22m-22 7h22m79-21h20m-20 7h21m-21 7h22m-22 7h22" stroke="#0e1721" stroke-width="3"/>
+  <path d="m61 482-1 53 4 30m110-83 2 53-4 30" stroke="#9ba9b4" stroke-opacity=".35"/>
+  <path d="M61 580h22m74 0h22" stroke="#0b141e" stroke-width="3"/>
+  <path d="M65 603h14m82 0h14" stroke="#c0d1dc" stroke-opacity=".55"/>
+
+  <!-- Ribbed engine bell, lit only at its exit. -->
+  <path d="M97 616h46v26l9 41-9 12H97l-9-12 9-41Z" fill="url(#engine)" stroke="#7f8994" stroke-opacity=".5"/>
+  <path d="M98 626h44m-44 7h44m-45 8h46m-48 8h50m-52 9h54m-58 10h60m-62 11h64" stroke="#111a26" stroke-width="3"/>
+  <path d="m103 643-5 39m14-39-2 39m18-39 2 39m9-39 5 39" stroke="#a7b2bd" stroke-opacity=".2"/>
+  <path d="M96 688h48l-3 7H99Z" fill="#b6d4df"/>
+  <path d="M100 692h40" stroke="#e3f5f7" stroke-width="3"/>
 </svg>
