@@ -113,7 +113,7 @@ test('homepage preserves approved sections and the button-free service strip', a
   const sectionEnd = html.indexOf('</main>') + '</main>'.length;
   assert.ok(sectionStart >= 0 && sectionEnd > sectionStart);
   assert.equal(sha256(html.slice(sectionStart, sectionEnd)), 'c141e1f8bee4d35b103c57fd1f74dbd3ecfc29a7395979ab90deef37bdcc4719', 'all sections after the hero preserve the approved content and button-free strip');
-  assert.equal(sha256(html.match(/<footer\b[\s\S]*?<\/footer>/)?.[0]), '21a4572ccb4a98727ac37ebabefc02c906b06d3ae8ac258cefc31e742c11f8ab', 'footer retains Studio access');
+  assert.equal(sha256(html.match(/<footer\b[\s\S]*?<\/footer>/)?.[0]), 'f68bd380ed5cead1d50b63bf3d71ec3bdbfbfd85e2bbffee5438dd900bd0f185', 'footer retains Studio access (re-approved 2026-10-29: horizontal logo lockup)');
   const css = await readFile(new URL('../css/homepage-v2.css', import.meta.url), 'utf8');
   const sectionStyles = css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\.nav[^{}]*\{[^}]*\}/gm, '').replace(/\s+/g, ' ').trim();
   assert.equal(sha256(sectionStyles), 'afb9a92b03c28c8b9992d076c0b09b46357461ab50d39b71c2c7580381c623ce', 'section styles preserve the approved layout and button-free strip');

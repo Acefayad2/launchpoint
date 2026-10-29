@@ -118,6 +118,12 @@
   box-shadow: 0 -2px 120px -40px #e8502a55;
 }
 
+/* Horizontal logo lockup (badge + wordmark), sized to read at a glance. */
+.nav .nav-logo { display: inline-flex; align-items: center; }
+.nav .nav-logo picture, .footer .footer-brand picture { display: block; line-height: 0; }
+.nav .nav-logo-img { display: block; width: auto; height: 46px; border-radius: 0; }
+.footer.home-v2 .footer-logo { display: block; width: auto; height: 56px; max-width: 100%; margin-bottom: 16px; border-radius: 0; }
+
 .hero-template { cursor: crosshair; }
 .hero-slogan {
   max-width: 34ch;
@@ -160,6 +166,8 @@
 @keyframes hero-hint-pulse { 70% { box-shadow: 0 0 0 9px #ff6a3d00; } 100% { box-shadow: 0 0 0 0 #ff6a3d00; } }
 
 @media (max-width: 700px) {
+  .nav .nav-logo-img { height: 38px; }
+  .footer.home-v2 .footer-logo { height: 48px; }
   .hero-depth-orbits { width: 190vmin; height: 190vmin; }
   .hero-depth-horizon { bottom: -70vmax; }
 }

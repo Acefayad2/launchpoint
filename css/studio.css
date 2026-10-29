@@ -278,3 +278,12 @@ body.dashboard-page .project-file-item:hover { background: var(--hover); }
 body.dashboard-page .project-file-type { border-radius: 6px; background: var(--raised); color: var(--muted); font: 700 .625rem/1 var(--body); letter-spacing: .02em; }
 body.dashboard-page .project-file-item strong { color: var(--ink); font: 600 var(--t-body)/1.4 var(--body); }
 body.dashboard-page .project-file-item small { color: var(--faint); font: 500 var(--t-meta)/1.4 var(--body); }
+
+/* ---------- Logo lockup ---------- */
+body.dashboard-page :is(.studio-brand-logo, .auth-brand-logo) { display: block; width: auto; border-radius: 0; }
+body.dashboard-page .studio-brand-logo { height: 34px; }
+body.dashboard-page .auth-brand-logo { height: 44px; }
+body.dashboard-page :is(.studio-brand, .auth-brand) picture { display: block; line-height: 0; }
+body.dashboard-page .studio-brand { gap: 12px; }
+body.dashboard-page .studio-brand span { padding-left: 12px; border-left: 1px solid var(--line-strong); }
+@media (max-width: 700px) { body.dashboard-page .studio-brand-logo { height: 28px; } }
