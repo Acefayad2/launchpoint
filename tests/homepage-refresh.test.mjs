@@ -26,7 +26,8 @@ const frozenFiles = {
   'css/style.css': '1908797bfe7385ca7ca3d6658043fa7d955e69cf54a0a461a71de3818f6a4e63',
   'css/neural-theme.css': 'b8807cfa32324256b53aca170da516d68dbc4df1a0f9c2feaaf5f9c80e26ff08',
   'js/main.js': '68669586204ac288d22857031b4836db8fa766d5c3f1e266af00e1ca60bc2f03',
-  'js/hero-webgl.js': '3db61a0db76b0049e0273933e9004d03afd93c1983e6bb1e488fd8c914411b7f',
+  // Re-approved 2026-10-29: interactive blob (cursor light, lens, depth scanner, click ripples).
+  'js/hero-webgl.js': '2e399ced3f3ed02a5745fbfbf886447cf610e6f008c2daa33a8bdf8888102835',
   'assets/launchpoint-rocket.svg': 'e1aacdbc7627b21409fcad90bd5a462d643cae3e3c3a4e94b033e27b716834a0',
   'assets/template-hero-texture.png': 'f58ba468bf6d3a2c9627178a1837f0f899b37b5dd5e34a00a3e11671cc7a59dc',
   'assets/template-hero-depth.webp': '4dc433ce306f213c0db63b6ead769e11eb0646612d488ed799053c63904b942d',
@@ -35,7 +36,8 @@ const frozenFiles = {
 test('homepage preserves the production hero and rocket intro visuals exactly', async () => {
   const blocks = [
     [/\<section class="hero hero-template"[\s\S]*?<\/section>/, '20cb4260beae6898a4f53737891a15a9dd5d342d8671f4fd00a41158f0251720', 'hero markup'],
-    [/\<div class="launch-intro" id="launch-intro">[\s\S]*?<\/button>\s*<\/div>/, '592cb08cba0303be22e0782f943128a5870dc178498f0f4d7e3ec3a5567203b8', 'intro markup'],
+    // Re-approved 2026-10-29: the Skip intro button was removed (Escape, scroll, or focus still end the intro).
+    [/\<div class="launch-intro" id="launch-intro">[\s\S]*?<\/div>\s*<\/div>/, '334ed9dae0aec048e3a0bb93e77bea79a933c12cc3b822dcd5667fe7706b6570', 'intro markup'],
   ];
   for (const [pattern, expected, label] of blocks) {
     const block = html.match(pattern)?.[0];
@@ -179,7 +181,7 @@ test('navigation and in-page links keep unique destinations and accessible mobil
   assert.equal(toggle['aria-expanded'], 'false');
   assert.ok(toggle['aria-label']);
   assert.ok(byId('navMobile').class.split(/\s+/).includes('nav-mobile'));
-  assert.ok(tags.some(tag => attributes(tag).class?.split(/\s+/).includes('nav-logo')), 'intro skip can restore focus to the logo');
+  assert.ok(tags.some(tag => attributes(tag).class?.split(/\s+/).includes('nav-logo')), 'intro can restore focus to the logo');
   for (const tag of tags.filter(tag => tag.startsWith('<a'))) {
     const { href = '' } = attributes(tag);
     if (href.startsWith('#') && href.length > 1) byId(href.slice(1));

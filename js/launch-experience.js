@@ -125,6 +125,16 @@
     <div class="hero-depth-horizon"></div>`;
   webgl.after(depth);
 
+  if (!motion.matches) {
+    const hint = document.createElement('p');
+    hint.className = 'hero-hint';
+    hint.setAttribute('aria-hidden', 'true');
+    hint.innerHTML = window.matchMedia('(pointer: fine)').matches
+      ? '<span></span>Move across the shape · click to send a pulse'
+      : '<span></span>Tap the shape to send a pulse';
+    hero.appendChild(hint);
+  }
+
   const svg = depth.querySelector('svg');
   [['hd-orbit-a', 'rotate(-14)', 34, 7], ['hd-orbit-b', 'rotate(22)', 52, 4.5], ['hd-orbit-c', 'rotate(-38)', 26, 5]].forEach(([id, rot, dur, r]) => {
     const g = document.createElementNS(ns, 'g');
