@@ -12,20 +12,12 @@
   const strip = document.getElementById('service-orbit');
   const track = document.getElementById('service-orbit-track');
   const list = track?.querySelector('.v2-orbit-list');
-  const toggle = strip?.querySelector('.v2-orbit-toggle');
-  if (!strip || !track || !list || !toggle) return;
+  if (!strip || !track || !list) return;
 
   const duplicate = list.cloneNode(true);
   duplicate.setAttribute('aria-hidden', 'true');
   track.append(duplicate);
   strip.classList.add('is-orbit-ready');
-  toggle.hidden = false;
-  toggle.addEventListener('click', () => {
-    const paused = strip.classList.toggle('is-paused');
-    toggle.setAttribute('aria-label', paused ? 'Resume service animation' : 'Pause service animation');
-    toggle.firstChild.textContent = paused ? 'Play ' : 'Pause ';
-    toggle.querySelector('span').textContent = paused ? '▶' : 'Ⅱ';
-  });
 
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(([entry]) => {

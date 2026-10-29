@@ -103,17 +103,17 @@ test('head gate only covers eligible visits and exposes a controller-owned fail-
   assert.doesNotMatch(controller, /!root\.classList\.contains\('launch-pending'\)/, 'an expired head watchdog does not suppress a still-eligible intro');
 });
 
-test('intro and header work leaves the approved sections, orbit, footer, and section styling untouched', async () => {
+test('homepage preserves approved sections and the button-free service strip', async () => {
   const sectionStart = html.indexOf('  <div class="home-v2">');
   const sectionEnd = html.indexOf('</main>') + '</main>'.length;
   assert.ok(sectionStart >= 0 && sectionEnd > sectionStart);
-  assert.equal(sha256(html.slice(sectionStart, sectionEnd)), '5bf5d8f548eea1561537eaea466597835696e58289a673acbfb3e0088c04876e', 'all sections after the hero match 77c94e0');
+  assert.equal(sha256(html.slice(sectionStart, sectionEnd)), '09327acf0d3d1a79cf247bed6b16136ed617f2bcc8e4b2d374751c269cf9193b', 'all sections after the hero preserve the approved content and button-free strip');
   assert.equal(sha256(html.match(/<footer\b[\s\S]*?<\/footer>/)?.[0]), '21a4572ccb4a98727ac37ebabefc02c906b06d3ae8ac258cefc31e742c11f8ab', 'footer retains Studio access');
   const css = await readFile(new URL('../css/homepage-v2.css', import.meta.url), 'utf8');
   const sectionStyles = css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\.nav[^{}]*\{[^}]*\}/gm, '').replace(/\s+/g, ' ').trim();
-  assert.equal(sha256(sectionStyles), '42ae6ecb92b0ca32bcd982ed3c0d08979951871737c0e65b0b9a57728c79648c', 'only header rules change in the homepage stylesheet');
+  assert.equal(sha256(sectionStyles), '196f1d20e110e9e137c97f81a9028a446c14c203143a7030a0b9ba19a325be93', 'section styles preserve the approved layout and button-free strip');
   const script = await readFile(new URL('../js/homepage-v2.js', import.meta.url));
-  assert.equal(sha256(script), 'e54a05aed8c7723027876f215ebb56bd613186b2dc0ec26cde7902cbb6512b38', 'revolving service animation and controls remain unchanged');
+  assert.equal(sha256(script), '5f563cb504d44cb8087b5fbda0eddb13d202a0bc87859c8b04e77ae5c22d48d5', 'revolving service animation remains independent of the removed control');
 });
 
 test('header is translucent white over both hero and light sections with readable controls', async () => {
@@ -238,30 +238,17 @@ test('footer exposes the existing Studio sign-in without promoting it to search 
   assert.match(footer, />Studio \/ Dashboard\s*<span\b[^>]*aria-hidden="true"/);
 });
 
-test('service animation has an accessible working pause control and hides its duplicate', async () => {
-  const controlTag = tags.find(tag => attributes(tag).class?.split(/\s+/).includes('v2-orbit-toggle'));
-  const control = attributes(controlTag);
-  assert.ok(controlTag.startsWith('<button'));
-  assert.equal(control.type, 'button');
-  assert.equal(control['aria-controls'], 'service-orbit-track');
-  assert.equal(control['aria-label'], 'Pause service animation');
-  assert.ok(Object.hasOwn(control, 'hidden'), 'no inactive pause control is shown when JavaScript is unavailable');
-  byId(control['aria-controls']);
+test('service animation works without a button and still pauses offscreen or in a hidden page', async () => {
+  assert.doesNotMatch(html, /v2-orbit-toggle|Pause service animation|Resume service animation/);
+  assert.equal(byId('service-orbit').tabindex, '0', 'keyboard users can focus the strip to pause movement');
+  byId('service-orbit-track');
 
   const classes = new Set();
   const listeners = {};
+  const observers = [];
   const duplicateAttributes = {};
   const duplicate = { setAttribute: (name, value) => { duplicateAttributes[name] = value; } };
-  const icon = { textContent: 'Ⅱ' };
-  const button = {
-    hidden: true,
-    firstChild: { textContent: 'Pause ' },
-    setAttribute: (name, value) => { control[name] = value; },
-    querySelector: () => icon,
-    addEventListener: (name, callback) => { listeners[name] = callback; },
-  };
   const strip = {
-    querySelector: () => button,
     classList: {
       add: name => classes.add(name),
       toggle(name, force = !classes.has(name)) {
@@ -278,20 +265,29 @@ test('service animation has an accessible working pause control and hides its du
     hidden: false,
     querySelector: () => null,
     getElementById: id => ({ 'service-orbit': strip, 'service-orbit-track': track })[id],
-    addEventListener: () => {},
+    addEventListener: (name, callback) => { listeners[name] = callback; },
   };
+  class IntersectionObserver {
+    constructor(callback) { this.callback = callback; observers.push(this); }
+    observe(node) { assert.equal(node, strip); }
+  }
   const script = await readFile(new URL('../js/homepage-v2.js', import.meta.url), 'utf8');
-  runInNewContext(script, { document, window: {} });
+  assert.doesNotMatch(script, /v2-orbit-toggle|is-paused/, 'no removed-button dependency or state remains');
+  runInNewContext(script, { document, window: { IntersectionObserver }, IntersectionObserver });
   assert.equal(duplicateAttributes['aria-hidden'], 'true');
-  assert.equal(button.hidden, false);
-  listeners.click();
-  assert.ok(classes.has('is-paused'));
-  assert.equal(control['aria-label'], 'Resume service animation');
-  assert.equal(button.firstChild.textContent, 'Play ');
-  listeners.click();
-  assert.ok(!classes.has('is-paused'));
-  assert.equal(control['aria-label'], 'Pause service animation');
-  assert.equal(button.firstChild.textContent, 'Pause ');
+  assert.ok(classes.has('is-orbit-ready'), 'animation initializes without a pause button');
+  assert.ok(!classes.has('is-page-hidden'));
+  document.hidden = true;
+  listeners.visibilitychange();
+  assert.ok(classes.has('is-page-hidden'));
+  document.hidden = false;
+  listeners.visibilitychange();
+  assert.ok(!classes.has('is-page-hidden'));
+  assert.equal(observers.length, 1);
+  observers[0].callback([{ isIntersecting: false }]);
+  assert.ok(classes.has('is-offscreen'));
+  observers[0].callback([{ isIntersecting: true }]);
+  assert.ok(!classes.has('is-offscreen'));
 });
 
 test('service animation falls back to a readable static list for reduced motion', async () => {
@@ -300,6 +296,8 @@ test('service animation falls back to a readable static list for reduced motion'
   assert.match(reduced, /\.v2-orbit-track\s*\{[^}]*animation:\s*none;[^}]*transform:\s*none;/);
   assert.match(reduced, /\.v2-orbit-list\s*\{[^}]*flex-wrap:\s*wrap;/);
   assert.match(reduced, /\.v2-orbit-window\s*\{[^}]*overflow:\s*visible;[^}]*mask-image:\s*none;/);
-  assert.match(reduced, /\.v2-orbit-list\[aria-hidden="true"\],\s*\.home-v2 \.v2-orbit-toggle\s*\{\s*display:\s*none;/);
-  assert.match(css, /\.v2-strip:is\(\.is-paused,\s*\.is-offscreen,\s*\.is-page-hidden\) \.v2-orbit-track\s*\{\s*animation-play-state:\s*paused;/);
+  assert.match(reduced, /\.v2-orbit-list\[aria-hidden="true"\]\s*\{\s*display:\s*none;/);
+  assert.doesNotMatch(css, /v2-orbit-toggle|is-paused/);
+  assert.match(css, /\.v2-orbit-window:hover \.v2-orbit-track,\s*\.home-v2 \.v2-strip:focus-within \.v2-orbit-track,\s*\.home-v2 \.v2-strip:is\(\.is-offscreen,\s*\.is-page-hidden\) \.v2-orbit-track\s*\{\s*animation-play-state:\s*paused;/);
+  assert.match(css, /\.v2-strip:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--v2-accent\)/, 'keyboard focus remains visible');
 });
