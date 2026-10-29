@@ -32,6 +32,8 @@ async function setup({ inviteFails = false, saveFails = false, clients = [fixtur
   });
   const Portal = {
     getSession: async () => ({ user: { email: 'admin@example.com' } }), getRole: async () => 'admin',
+    adminAccess: async () => ({ isAdmin: true, verified: true, requiresVerification: false, expiresAt: null }),
+    signOutAdmin: async () => {},
     loadClients: async () => structuredClone(clients), subscribe: (_, callback) => { realtime = callback; return () => {}; },
     initials: () => 'AM', formatTime: (value) => value || 'Not contacted', onAuthStateChange() {},
     getPaymentIntegrationStatus: async () => ({ stripeConnected: false, quoConnected: false }),
@@ -66,7 +68,7 @@ test('project workspace edits contact and progress while preserving payment rout
   assert.match(markup, /A copied link alone does not grant access/);
   assert.match(markup, /id="client-send-invite"[^>]*checked/);
   assert.match(markup, /id="payment-form"/);
-  assert.match(markup, /js\/portal-data\.js\?v=20261029-portal1/);
+  assert.match(markup, /js\/portal-data\.js\?v=20261029-admin1/);
 });
 
 test('realtime refresh preserves an unsaved project draft', async () => {

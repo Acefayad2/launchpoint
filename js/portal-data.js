@@ -2,8 +2,36 @@
   const config = window.LAUNCHPOINT_SUPABASE;
   if (!config || !window.supabase) throw new Error('LaunchPoint database configuration is missing.');
 
+  // Match Supabase's existing default key so current sessions remain compatible.
+  const authStorageKey = `sb-${new URL(config.url).hostname.split('.')[0]}-auth-token`;
+  const authStorageKeys = [authStorageKey, `${authStorageKey}-code-verifier`, `${authStorageKey}-user`];
+  const memoryAuthStorage = new Map();
+  const authListeners = new Set();
+  let localSignOutBlocked = false;
+  const authStorage = {
+    getItem(key) {
+      if (localSignOutBlocked) return null;
+      try {
+        if (window.localStorage) {
+          const stored = window.localStorage.getItem(key);
+          if (stored !== null) return stored;
+        }
+      } catch (_) { /* Private browsing can disable storage. */ }
+      return memoryAuthStorage.get(key) ?? null;
+    },
+    setItem(key, value) {
+      // A refresh already in flight when logout begins must not restore its session.
+      if (localSignOutBlocked) return;
+      try { if (window.localStorage) { window.localStorage.setItem(key, value); memoryAuthStorage.delete(key); return; } } catch (_) { /* Keep non-persisted auth in memory only. */ }
+      memoryAuthStorage.set(key, value);
+    },
+    removeItem(key) {
+      memoryAuthStorage.delete(key);
+      if (window.localStorage) window.localStorage.removeItem(key);
+    }
+  };
   const db = window.supabase.createClient(config.url, config.publishableKey, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: authStorageKey, storage: authStorage }
   });
   const formatTime = (value) => value ? new Intl.DateTimeFormat('en-US', {
     month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
@@ -41,9 +69,23 @@
   }
 
   async function getSession() {
+    if (localSignOutBlocked) return null;
     const { data, error } = await db.auth.getSession();
     if (error) throw error;
+    if (localSignOutBlocked) return null;
     return data.session;
+  }
+
+  async function acceptSignInSession(session) {
+    // Called only after an explicit password sign-in or sign-up succeeds, never
+    // from INITIAL_SESSION, TOKEN_REFRESHED, or a generic SDK auth event.
+    if (!session?.access_token || !session.user?.id) return;
+    const wasBlocked = localSignOutBlocked;
+    localSignOutBlocked = false;
+    if (wasBlocked) {
+      authStorage.setItem(authStorageKey, JSON.stringify(session));
+      await db.auth.startAutoRefresh?.();
+    }
   }
 
   async function sendMagicLink(email, redirectTo) {
@@ -60,6 +102,7 @@
       password
     });
     if (error) throw error;
+    await acceptSignInSession(data.session);
     return data.session;
   }
 
@@ -67,6 +110,63 @@
     const { error } = await db.auth.signOut();
     if (error) throw error;
   }
+
+  async function adminAccess(action, payload = {}) {
+    const session = await getSession();
+    if (action !== 'invite-info' && !session) throw new Error('Please sign in again.');
+    const response = await fetch('/api/admin-access', {
+      method: 'POST', cache: 'no-store',
+      headers: { 'Content-Type': 'application/json', ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}) },
+      body: JSON.stringify({ action, ...payload })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(data.error || 'Admin verification is temporarily unavailable. Please try again.');
+      error.status = response.status;
+      error.retryAfter = Number(data.retryAfter || response.headers?.get('Retry-After')) || 0;
+      throw error;
+    }
+    return data;
+  }
+
+  async function signOutAdmin() {
+    // Revoke the phone-verification lease before invalidating the first-factor session.
+    // Even when the network is unavailable, clear the local session and lock the UI.
+    let revokeError;
+    try { await adminAccess('revoke'); } catch (error) { revokeError = error; }
+    let signOutError;
+    try { await signOut(); } catch (error) { signOutError = error; }
+    // Supabase can return a network error before clearing persisted credentials.
+    // Always lock locally and remove only this app's known auth storage entries.
+    localSignOutBlocked = true;
+    try { await db.auth.stopAutoRefresh?.(); } catch (_) { /* The storage guard still blocks late writes. */ }
+    let storageError = false;
+    for (const key of authStorageKeys) {
+      try { authStorage.removeItem(key); } catch (_) { storageError = true; }
+    }
+    authListeners.forEach(callback => callback('SIGNED_OUT', null));
+    if (storageError) throw new Error('This tab is locked, but browser storage could not be cleared. Close this browser and clear LaunchPoint site data before using a shared device.');
+    if (signOutError) throw new Error('Signed out on this browser. The server could not be reached; any existing server session will expire automatically.');
+    if (revokeError) throw new Error('Signed out. Verification could not be revoked online; it will expire automatically.');
+  }
+
+  function onAuthStateChange(callback) {
+    authListeners.add(callback);
+    const result = db.auth.onAuthStateChange((event, session) => {
+      if (localSignOutBlocked && event !== 'SIGNED_OUT') return;
+      callback(event, session);
+    });
+    const subscription = result.data.subscription;
+    const unsubscribe = subscription.unsubscribe.bind(subscription);
+    subscription.unsubscribe = () => { authListeners.delete(callback); unsubscribe(); };
+    return result;
+  }
+  window.addEventListener?.('storage', event => {
+    if (event.key !== authStorageKey || event.newValue !== null) return;
+    localSignOutBlocked = true;
+    Promise.resolve(db.auth.stopAutoRefresh?.()).catch(() => {});
+    authListeners.forEach(callback => callback('SIGNED_OUT', null));
+  });
 
   async function getRole() {
     const { data, error } = await db.rpc('current_user_role');
@@ -248,10 +348,10 @@
   }
 
   window.LaunchPointPortal = {
-    db, getSession, sendMagicLink, signInWithPassword, signOut, getRole, loadClients, loadClient, createClient,
+    db, getSession, sendMagicLink, signInWithPassword, acceptSignInSession, signOut, signOutAdmin, adminAccess, getRole, loadClients, loadClient, createClient,
     addMessage, markMessagesRead, respondToApproval, subscribe, getPaymentIntegrationStatus, createPaymentLink,
     updateProject, syncSubscription, createEditRequest, updateEditRequest, uploadProjectFile, getProjectFileUrl,
-    onAuthStateChange: (callback) => db.auth.onAuthStateChange(callback),
+    onAuthStateChange,
     formatTime, initials
   };
 })();

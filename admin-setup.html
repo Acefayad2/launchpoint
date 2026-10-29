@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Account security | LaunchPoint Studio</title>
+  <link rel="icon" type="image/png" href="assets/launchpoint-mark-v2.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Orbitron:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Red+Hat+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/dashboard-glass.css?v=20261028-1">
+  <link rel="stylesheet" href="css/studio.css?v=20261029-3">
+  <link rel="stylesheet" href="css/admin-access.css?v=20261029-1">
+</head>
+<body class="dashboard-page admin-setup-page">
+  <main class="admin-setup-shell">
+    <a class="auth-brand" href="/"><img class="auth-brand-logo" src="assets/launchpoint-logo-v2.png" alt="LaunchPoint"><span>Studio / security</span></a>
+    <div class="admin-setup-layout">
+      <header class="admin-setup-intro">
+        <p class="section-kicker">Your workspace. Protected.</p>
+        <h1 id="setup-title">Make it yours.</h1>
+        <p id="setup-description">Your own sign-in, a private verification code, and one secure place for the work.</p>
+        <ol class="admin-setup-steps"><li><span>01</span> Your email &amp; password</li><li><span>02</span> Verify your phone</li><li><span>03</span> Open LaunchPoint Studio</li></ol>
+        <p class="admin-security-note">Never share a password or verification code. LaunchPoint will never ask you to send them in a text.</p>
+      </header>
+      <div class="admin-setup-card">
+        <p id="setup-status" class="form-status" role="status" aria-live="polite">Checking your secure setup link…</p>
+        <section id="setup-auth" hidden aria-labelledby="setup-auth-title">
+          <h2 id="setup-auth-title">Create your account.</h2>
+          <p id="setup-auth-copy">Choose the email and password you want to use for LaunchPoint.</p>
+          <form id="setup-auth-form" class="auth-form">
+            <label for="setup-email">Email address</label>
+            <input id="setup-email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com">
+            <label for="setup-password">Password</label>
+            <input id="setup-password" type="password" autocomplete="new-password" required minlength="12" maxlength="128" aria-describedby="setup-password-hint">
+            <p class="field-hint" id="setup-password-hint">Use at least 12 characters. A unique passphrase or password-manager suggestion works well.</p>
+            <div id="setup-confirm-wrap" class="admin-field-group"><label for="setup-password-confirm">Confirm password</label><input id="setup-password-confirm" type="password" autocomplete="new-password" required minlength="12" maxlength="128"></div>
+            <button class="primary-action" type="submit" id="setup-auth-submit">Create account</button>
+          </form>
+          <button class="auth-link-action" id="setup-toggle-auth" type="button">Already have an account? Sign in</button>
+          <button class="auth-link-action" id="setup-magic-link" type="button" hidden>Email me a sign-in link</button>
+        </section>
+        <section id="setup-verify" hidden aria-labelledby="setup-verify-title">
+          <p class="admin-session-label" id="setup-session-email"></p>
+          <h2 id="setup-verify-title">Verify it’s you.</h2>
+          <p id="setup-phone-label"></p>
+          <button id="setup-send-code" class="primary-action" type="button">Text me a code</button>
+          <form id="setup-code-form" class="auth-form" hidden>
+            <label for="setup-code">6-digit verification code</label>
+            <input id="setup-code" class="admin-code-input" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" required>
+            <button class="primary-action" type="submit">Verify my phone</button>
+          </form>
+          <p class="field-hint">Codes expire after 5 minutes and work once. Too many attempts will require a new code.</p>
+        </section>
+        <section id="setup-security" hidden aria-labelledby="setup-security-title">
+          <span class="admin-verified-badge">Phone verified</span>
+          <h2 id="setup-security-title">Your account, secured.</h2>
+          <p>Your account has full LaunchPoint admin access. You can keep your current email and password, or update them here.</p>
+          <p class="admin-session-label" id="security-current-email"></p>
+          <form id="setup-security-form" class="auth-form">
+            <label for="security-email">New email <span class="field-optional">optional</span></label>
+            <input id="security-email" type="email" autocomplete="email" maxlength="254" placeholder="Only if you want to change it">
+            <label for="security-password">New password <span class="field-optional">optional</span></label>
+            <input id="security-password" type="password" autocomplete="new-password" minlength="12" maxlength="128" aria-describedby="security-password-hint">
+            <p class="field-hint" id="security-password-hint">At least 12 characters. Your password is sent directly to Supabase Auth, never in a text message.</p>
+            <label for="security-password-confirm">Confirm new password</label>
+            <input id="security-password-confirm" type="password" autocomplete="new-password" maxlength="128">
+            <div id="security-reauth" class="admin-field-group" hidden><p class="field-hint">Supabase needs a fresh account check before changing your password.</p><button id="security-reauth-send" class="auth-link-action" type="button">Email me an account-confirmation code</button><label for="security-nonce">Email confirmation code</label><input id="security-nonce" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="64"></div>
+            <button class="secondary-action" type="submit">Save account changes</button>
+          </form>
+          <p class="field-hint">Changing your email requires confirmation from the email links Supabase sends. Your existing account and project access stay together.</p>
+        </section>
+        <section id="setup-invite" class="admin-invite-section" hidden aria-labelledby="setup-invite-title">
+          <h2 id="setup-invite-title">Invite an administrator.</h2>
+          <p>This gives the recipient the same admin access as you, after they create an account and verify the invited phone.</p>
+          <p id="setup-legacy-note" class="field-hint" hidden>To secure your current account with phone verification, send yourself a setup link below and select “My current account.”</p>
+          <form id="setup-invite-form" class="auth-form">
+            <label for="invite-name">Name</label><input id="invite-name" type="text" autocomplete="off" maxlength="80" required>
+            <label for="invite-phone">Mobile number</label><input id="invite-phone" type="tel" inputmode="tel" autocomplete="off" required placeholder="(301) 555-0123">
+            <label class="admin-checkbox"><input id="invite-current-account" type="checkbox"> My current account</label>
+            <button class="secondary-action" type="submit">Text secure setup link</button>
+          </form>
+          <p id="setup-invite-status" class="form-status" role="status" aria-live="polite"></p>
+        </section>
+        <div class="admin-setup-actions"><a class="primary-action" id="setup-dashboard-link" href="dashboard.html" hidden>Open studio <span aria-hidden="true">↗</span></a><button class="auth-link-action" id="setup-signout" type="button" hidden>Sign out / use another account</button></div>
+      </div>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/portal-data.js?v=20261029-admin1"></script>
+  <script src="js/admin-setup.js?v=20261029-1"></script>
+</body>
+</html>
