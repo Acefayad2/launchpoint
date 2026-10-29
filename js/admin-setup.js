@@ -104,6 +104,7 @@
       session = await Portal.getSession();
       if (revision !== epoch) return;
       $('#setup-signout').hidden = !session;
+      $('#setup-signout').textContent = 'Sign out / use another account';
       access = session ? await Portal.adminAccess('status') : null;
       if (revision !== epoch) return;
       if (access?.isAdmin && access.verified && !inviteToken) {
@@ -127,6 +128,11 @@
         }
       }
       hideSections();
+      if (session && access?.isAdmin && invite && !invite.existingAccount) {
+        $('#setup-signout').textContent = 'Sign out to create your new account';
+        notice(`You are already signed in as ${session.user.email}. This invitation is for a new account. Sign out below, then choose a different email and your new password. Your existing admin account will not be deleted.`);
+        return;
+      }
       if (!session) {
         if (pendingEmail && invite) { showEmailPending(pendingEmail); notice('Email confirmation is next. Your setup invitation is still saved in this tab.'); return; }
         $('#setup-auth').hidden = false;

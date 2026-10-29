@@ -182,6 +182,17 @@ test('existing owner invitation requires signing in to existing account, not sig
   assert.equal(ui.get('#setup-magic-link').hidden, false);
 });
 
+test('new invitation cannot send an existing administrator into an impossible enrollment', async () => {
+  const ui = await harness({ hash: '#invite=new-account-invite' });
+  assert.equal(ui.get('#setup-verify').hidden, true);
+  assert.match(ui.get('#setup-status').textContent, /already signed in/);
+  assert.equal(ui.get('#setup-signout').textContent, 'Sign out to create your new account');
+  await ui.emit('#setup-signout', 'click');
+  assert.equal(ui.get('#setup-auth-submit').textContent, 'Create account');
+  assert.equal(ui.get('#setup-auth').hidden, false);
+  assert.equal(ui.storage.get('launchpoint-admin-invite'), 'new-account-invite');
+});
+
 test('SMS is explicit, resend is limited, successful verification removes invitation', async () => {
   const ui = await harness({ status: { isAdmin: false, verified: false }, hash: '#invite=opaque-invite' });
   assert.equal(ui.calls.some(call => call.action === 'send-code'), false);
