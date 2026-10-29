@@ -11,7 +11,7 @@
   <link rel="icon" type="image/png" href="assets/launchpoint-mark-v2.png">
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/dashboard-glass.css?v=20261028-1">
-  <link rel="stylesheet" href="css/dashboard-neural.css?v=20261029-2">
+  <link rel="stylesheet" href="css/dashboard-neural.css?v=20261029-3">
 </head>
 <body class="dashboard-page" data-auth-state="loading">
   <a class="skip-link" href="#workspace">Skip to workspace</a>
@@ -43,8 +43,8 @@
       <span>Studio</span>
     </a>
     <nav class="studio-nav" aria-label="Dashboard">
-      <button class="nav-item is-active" type="button" data-view="payments" aria-current="page">Invoices</button>
-      <button class="nav-item" type="button" data-view="overview">Overview</button>
+      <button class="nav-item is-active" type="button" data-view="overview" aria-current="page">Home</button>
+      <button class="nav-item" type="button" data-view="payments">Invoices</button>
       <button class="nav-item" type="button" data-view="clients">Clients <span id="nav-client-count">—</span></button>
       <button class="nav-item" type="button" data-view="messages">Messages <span id="nav-unread-count">—</span></button>
     </nav>
@@ -60,14 +60,29 @@
   <main id="workspace" class="studio-main authenticated-only">
     <section class="page-heading">
       <div>
-        <p class="eyebrow" id="view-eyebrow">LaunchPoint / invoices</p>
-        <h1 id="view-title">Create an invoice.</h1>
-        <p id="view-description">A secure payment page for your client, ready in seconds.</p>
+        <p class="eyebrow" id="view-eyebrow">LaunchPoint / home</p>
+        <h1 id="view-title">Your business, today.</h1>
+        <p id="view-description">Payments, clients, and the next move in one place.</p>
       </div>
       <div class="heading-actions"><button class="primary-action" id="new-invoice-button" type="button" hidden><span aria-hidden="true">+</span> New invoice</button><button class="secondary-action" id="new-client-button" type="button" hidden><span aria-hidden="true">+</span> New client</button></div>
     </section>
 
     <section class="overview-view" id="overview-view" data-view-panel="overview" hidden>
+      <section class="finance-overview" aria-labelledby="finance-title">
+        <div class="finance-feature">
+          <div class="finance-feature-top"><div><p class="section-kicker">Payment overview</p><h2 id="finance-title">Revenue in focus.</h2></div><button class="finance-refresh" id="refresh-revenue" type="button" aria-label="Refresh payment data">Refresh ↻</button></div>
+          <p class="finance-feature-copy">Successful LaunchPoint invoice payments recorded by Stripe.</p>
+          <strong id="gross-revenue" class="finance-total" aria-live="polite">—</strong>
+          <p class="finance-scope" id="revenue-scope">Loading Stripe payment history…</p>
+          <p class="finance-updated" id="revenue-updated"></p>
+        </div>
+        <div class="finance-metrics" aria-label="Invoice payment status">
+          <article><span>Successful payments</span><strong id="paid-invoice-count">—</strong><small>Confirmed by Stripe</small></article>
+          <article><span>Open requests</span><strong id="open-invoice-amount">—</strong><small id="open-invoice-count">Waiting for payment</small></article>
+          <article><span>Processing</span><strong id="processing-invoice-amount">—</strong><small id="processing-invoice-count">Not counted as paid</small></article>
+        </div>
+      </section>
+
       <div class="signal-grid" aria-label="Business summary">
         <article class="signal-card signal-card-featured">
           <div class="signal-label"><span class="signal-dot"></span> Active clients</div>
@@ -91,17 +106,8 @@
         </article>
       </div>
 
-      <section class="project-shortcuts" aria-labelledby="project-shortcuts-title">
-        <header class="panel-heading"><div><p class="section-kicker">Project shortcuts</p><h2 id="project-shortcuts-title">AMG, Yardly, and HMP</h2></div></header>
-        <div class="project-shortcut-grid">
-          <a href="https://anointedmoneygroup.com/" target="_blank" rel="noopener"><strong>Anointed Money Group</strong><span>Website and CRM</span><em>Open site ↗</em></a>
-          <a href="https://yardly-app.netlify.app/" target="_blank" rel="noopener"><strong>Yardly</strong><span>Outdoor-space marketplace</span><em>Open site ↗</em></a>
-          <a href="https://hmpeds.com/" target="_blank" rel="noopener"><strong>HMP</strong><span>Events website and portal</span><em>Open site ↗</em></a>
-        </div>
-      </section>
-
       <section class="recent-paid-panel" aria-labelledby="recent-paid-title">
-        <header class="panel-heading"><div><p class="section-kicker">Stripe-backed</p><h2 id="recent-paid-title">Recent paid invoices</h2></div><button class="text-action" type="button" data-view-jump="payments">All invoices</button></header>
+        <header class="panel-heading"><div><p class="section-kicker">Latest activity</p><h2 id="recent-paid-title">Payments received</h2></div><button class="text-action" type="button" data-view-jump="payments">All invoices</button></header>
         <div id="recent-paid-list" aria-live="polite"><p class="inline-empty">Loading payment history…</p></div>
       </section>
 
@@ -129,6 +135,15 @@
           <span class="spotlight-footnote">Stripe handles payment details securely.</span>
         </aside>
       </div>
+
+      <section class="project-shortcuts" aria-labelledby="project-shortcuts-title">
+        <header class="panel-heading"><div><p class="section-kicker">Project shortcuts</p><h2 id="project-shortcuts-title">AMG, Yardly, and HMP</h2></div></header>
+        <div class="project-shortcut-grid">
+          <a href="https://anointedmoneygroup.com/" target="_blank" rel="noopener"><strong>Anointed Money Group</strong><span>Website and CRM</span><em>Open site ↗</em></a>
+          <a href="https://yardly-app.netlify.app/" target="_blank" rel="noopener"><strong>Yardly</strong><span>Outdoor-space marketplace</span><em>Open site ↗</em></a>
+          <a href="https://hmpeds.com/" target="_blank" rel="noopener"><strong>HMP</strong><span>Events website and portal</span><em>Open site ↗</em></a>
+        </div>
+      </section>
     </section>
 
     <section class="clients-view" id="clients-view" data-view-panel="clients" hidden>
@@ -289,6 +304,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/portal-data.js"></script>
-  <script src="js/dashboard.js?v=20261029-1"></script>
+  <script src="js/dashboard.js?v=20261029-2"></script>
 </body>
 </html>

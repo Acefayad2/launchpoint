@@ -42,8 +42,13 @@ async function stripeRequest(path: string, secret: string, body: URLSearchParams
 
 async function recentInvoices(secret: string) {
   const invoices: Array<Record<string, unknown>> = [];
+  const paid: Array<Record<string, unknown>> = [];
+  const summary = { grossReceived: 0, paidCount: 0, openAmount: 0, openCount: 0, processingAmount: 0, processingCount: 0, scannedCount: 0, complete: true };
+  const paidReferences = new Set<string>();
+  const openByReference = new Map<string, number>();
+  const processingByReference = new Map<string, number>();
   let cursor = '';
-  for (let page = 0; page < 3 && invoices.length < 8; page += 1) {
+  for (let page = 0; page < 3; page += 1) {
     const params = new URLSearchParams({ limit: '100' });
     if (cursor) params.set('starting_after', cursor);
     const response = await fetch(`${STRIPE_API}/payment_intents?${params}`, {
@@ -52,11 +57,12 @@ async function recentInvoices(secret: string) {
     if (!response.ok) throw new Error('Stripe invoice history is unavailable.');
     const result = await response.json();
     const intents = Array.isArray(result.data) ? result.data : [];
+    summary.scannedCount += intents.length;
     for (const intent of intents) {
       const isGeneratedInvoice = intent.metadata?.launchpoint_invoice === '1';
       const isAmgInvoice = intent.metadata?.invoice_id === 'LP-AMG-20261027-01' && intent.amount === 450_000 && intent.currency === 'usd';
-      if ((!isGeneratedInvoice && !isAmgInvoice) || !/^pi_[A-Za-z0-9_]+$/.test(intent.id || '')) continue;
-      invoices.push({
+      if ((!isGeneratedInvoice && !isAmgInvoice) || !/^pi_[A-Za-z0-9_]+$/.test(intent.id || '') || intent.currency !== 'usd' || !Number.isSafeInteger(intent.amount)) continue;
+      const invoice = {
         id: intent.id,
         reference: isAmgInvoice ? 'LP-AMG-20261027-01' : intent.metadata.reference || '',
         company: isAmgInvoice ? 'Anointed Money Group (AMG)' : intent.metadata.company || '',
@@ -66,13 +72,35 @@ async function recentInvoices(secret: string) {
         created: intent.created,
         sent: intent.metadata.sent_via_quo === '1',
         url: isAmgInvoice ? '/invoice/LP-AMG-20261027-01' : `/invoice/${intent.id}`
-      });
-      if (invoices.length === 8) break;
+      };
+      const invoiceReference = String(invoice.reference || intent.id);
+      if (invoices.length < 8) invoices.push(invoice);
+      if (intent.status === 'succeeded') {
+        summary.grossReceived += Number.isSafeInteger(intent.amount_received) && intent.amount_received >= 0 ? intent.amount_received : intent.amount;
+        summary.paidCount += 1;
+        paidReferences.add(invoiceReference);
+        if (paid.length < 5) paid.push(invoice);
+      } else if (intent.status === 'processing') {
+        if (!processingByReference.has(invoiceReference)) processingByReference.set(invoiceReference, intent.amount);
+      } else if (['requires_payment_method', 'requires_confirmation', 'requires_action'].includes(intent.status)) {
+        if (!openByReference.has(invoiceReference)) openByReference.set(invoiceReference, intent.amount);
+      }
     }
     if (!result.has_more || !intents.length) break;
+    if (page === 2) summary.complete = false;
     cursor = intents[intents.length - 1].id;
   }
-  return invoices;
+  for (const [reference, amount] of processingByReference) {
+    if (paidReferences.has(reference)) continue;
+    summary.processingAmount += amount;
+    summary.processingCount += 1;
+  }
+  for (const [reference, amount] of openByReference) {
+    if (paidReferences.has(reference) || processingByReference.has(reference)) continue;
+    summary.openAmount += amount;
+    summary.openCount += 1;
+  }
+  return { recentInvoices: invoices, recentPaid: paid, summary };
 }
 
 function cleanText(value: unknown, maximum: number) {
@@ -93,9 +121,9 @@ export default async (request: Request) => {
 
     if (request.method === 'GET') {
       const base = { stripeConnected: Boolean(stripeSecret), quoConnected: Boolean(quoApiKey && validPhone(quoFromNumber)) };
-      if (!stripeSecret) return json({ ...base, recentInvoices: [] });
-      try { return json({ ...base, recentInvoices: await recentInvoices(stripeSecret) }); }
-      catch { return json({ ...base, stripeConnected: false, recentInvoices: [], historyError: 'Stripe invoice history could not load.' }); }
+      if (!stripeSecret) return json({ ...base, recentInvoices: [], recentPaid: [], summary: null });
+      try { return json({ ...base, ...await recentInvoices(stripeSecret) }); }
+      catch { return json({ ...base, stripeConnected: false, recentInvoices: [], recentPaid: [], summary: null, historyError: 'Stripe invoice history could not load.' }); }
     }
     if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
 

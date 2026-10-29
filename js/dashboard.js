@@ -10,10 +10,13 @@
   let unsubscribeRealtime = null;
   let latestPaymentUrl = '';
   let invoiceHistory = [];
+  let recentPaid = [];
   let invoiceHistoryError = '';
+  let paymentRefreshTimer = null;
+  const formatMoney = (cents) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100);
 
   const headings = {
-    overview: ['LaunchPoint / overview', 'The work at a glance.', 'Clients, conversations, and the next decisions in one place.'],
+    overview: ['LaunchPoint / home', 'Your business, today.', 'Payments, clients, and the next move in one place.'],
     clients: ['Client roster', 'Every client, one clear view.', 'Track the work, the next decision, and the last conversation.'],
     messages: ['Client care', 'Keep the work moving.', 'Reply without losing the project context around the conversation.'],
     payments: ['LaunchPoint / invoices', 'Create an invoice.', 'A secure payment page for your client, ready in seconds.']
@@ -171,12 +174,24 @@
 
   function renderRecentPaid() {
     const target = $('#recent-paid-list');
-    const paid = invoiceHistory.filter((item) => item.status === 'Paid').slice(0, 4);
-    target.innerHTML = paid.length ? paid.map((item) => `
+    target.innerHTML = recentPaid.length ? recentPaid.map((item) => `
       <a class="paid-invoice-row" href="${escapeHtml(item.url)}" target="_blank" rel="noopener">
         <span><strong>${escapeHtml(item.company)}</strong><small>${escapeHtml(item.description)}</small></span>
-        <span><b>${escapeHtml(item.amount)}</b><small>${escapeHtml(Portal.formatTime(item.createdAt))}</small></span>
+        <span><b>${escapeHtml(item.amount)}</b><small>Invoice created ${escapeHtml(Portal.formatTime(item.createdAt))}</small></span>
       </a>`).join('') : `<p class="inline-empty">${escapeHtml(invoiceHistoryError || 'No paid LaunchPoint invoices in recent Stripe history yet.')}</p>`;
+  }
+
+  function renderFinanceSummary(summary, error = '') {
+    $('#gross-revenue').textContent = summary ? formatMoney(summary.grossReceived) : '—';
+    $('#paid-invoice-count').textContent = summary ? summary.paidCount : '—';
+    $('#open-invoice-amount').textContent = summary ? formatMoney(summary.openAmount) : '—';
+    $('#open-invoice-count').textContent = summary ? `${summary.openCount} awaiting payment` : 'Waiting for payment';
+    $('#processing-invoice-amount').textContent = summary ? formatMoney(summary.processingAmount) : '—';
+    $('#processing-invoice-count').textContent = summary ? `${summary.processingCount} processing` : 'Not counted as paid';
+    $('#revenue-scope').textContent = error || (summary?.complete
+      ? 'All LaunchPoint invoices in this Stripe account. Gross before refunds and fees.'
+      : summary ? `Based on the newest ${summary.scannedCount} Stripe payments. Older history is not included.` : 'Stripe payment history is unavailable.');
+    $('#revenue-updated').textContent = summary ? `Updated ${new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(new Date())}` : '';
   }
 
   function setIntegrationStatus(id, name, connected) {
@@ -187,27 +202,35 @@
   }
 
   async function loadPaymentStatus() {
+    const refreshButton = $('#refresh-revenue');
+    refreshButton.disabled = true;
     try {
       const status = await Portal.getPaymentIntegrationStatus();
       setIntegrationStatus('#stripe-status', 'Stripe', status.stripeConnected);
       setIntegrationStatus('#quo-status', 'Quo', status.quoConnected);
       invoiceHistoryError = status.historyError || '';
-      invoiceHistory = (status.recentInvoices || []).map((item) => ({
+      const mapInvoice = (item) => ({
         company: item.company,
         description: item.description,
-        amount: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.amount / 100),
+        amount: formatMoney(item.amount),
         createdAt: new Date(item.created * 1000).toISOString(),
         status: item.status === 'succeeded' ? 'Paid' : item.status === 'processing' ? 'Processing' : item.status === 'canceled' ? 'Canceled' : 'Open',
         url: new URL(item.url?.startsWith('/invoice/') ? item.url : `/invoice/${encodeURIComponent(item.id)}`, location.origin).href
-      }));
+      });
+      invoiceHistory = (status.recentInvoices || []).map(mapInvoice);
+      recentPaid = (status.recentPaid || []).map(mapInvoice);
+      renderFinanceSummary(status.summary, invoiceHistoryError || (!status.stripeConnected ? 'Connect Stripe to see payments and revenue.' : ''));
       renderRecentPayments();
       renderRecentPaid();
     } catch (error) {
       setIntegrationStatus('#stripe-status', 'Stripe', false);
       setIntegrationStatus('#quo-status', 'Quo', false);
       invoiceHistoryError = 'Payment history could not load.';
+      renderFinanceSummary(null, invoiceHistoryError);
       renderRecentPaid();
       $('#payment-form-status').textContent = error.message;
+    } finally {
+      refreshButton.disabled = false;
     }
   }
 
@@ -244,7 +267,11 @@
         initialize.realtimeTimer = setTimeout(() => refresh().catch(console.error), 250);
       });
       const initialView = new URLSearchParams(location.search).get('view');
-      setView(['overview', 'clients', 'messages', 'payments'].includes(initialView) ? initialView : 'payments');
+      setView(['overview', 'clients', 'messages', 'payments'].includes(initialView) ? initialView : 'overview');
+      clearInterval(paymentRefreshTimer);
+      paymentRefreshTimer = setInterval(() => {
+        if (!document.hidden && !$('#overview-view').hidden) loadPaymentStatus();
+      }, 60_000);
     } catch (error) {
       console.error(error);
       showAuth('The workspace could not load. Please try signing in again.');
@@ -276,6 +303,7 @@
   });
 
   $('#sign-out-button').addEventListener('click', async () => { await Portal.signOut(); location.reload(); });
+  $('#refresh-revenue').addEventListener('click', loadPaymentStatus);
   $$('.nav-item').forEach((button) => button.addEventListener('click', () => setView(button.dataset.view)));
   $$('[data-view-jump]').forEach((button) => button.addEventListener('click', () => setView(button.dataset.viewJump)));
   $('#attention-list').addEventListener('click', (event) => { const row = event.target.closest('[data-open-client]'); if (row) openClient(row.dataset.openClient); });

@@ -124,6 +124,57 @@ test('dashboard includes the real AMG invoice but excludes unrelated and $1 test
   });
 });
 
+test('dashboard revenue counts only successful received payments and finds paid activity beyond newest invoices', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const openInvoices = Array.from({ length: 9 }, (_, index) => stripeInvoice({ id: `pi_openinvoice${index}`, amount: 20000, metadata: { ...stripeInvoice().metadata, reference: `LP-OPEN-${index}` } }));
+  const paidInvoice = stripeInvoice({ id: 'pi_paidinvoice123', amount: 55000, amount_received: 55000, status: 'succeeded', metadata: { ...stripeInvoice().metadata, reference: 'LP-PAID' } });
+  const processingInvoice = stripeInvoice({ id: 'pi_processing123', amount: 30000, status: 'processing', metadata: { ...stripeInvoice().metadata, reference: 'LP-PROCESSING' } });
+  globalThis.fetch = async (url) => {
+    const admin = adminFetch(url);
+    if (admin) return admin;
+    if (url.startsWith('https://api.stripe.com/v1/payment_intents?')) return Response.json({
+      has_more: false, data: [...openInvoices, processingInvoice, paidInvoice, { id: 'pi_unrelated', status: 'succeeded', amount: 999999, metadata: {} }]
+    });
+    throw new Error(`Unexpected request: ${url}`);
+  };
+  const response = await createInvoice(new Request('https://mylaunch.dev/api/payment-links', {
+    headers: { authorization: 'Bearer admin-token' }
+  }));
+  const result = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(result.recentInvoices.length, 8);
+  assert.equal(result.recentPaid.length, 1);
+  assert.equal(result.recentPaid[0].id, 'pi_paidinvoice123');
+  assert.deepEqual(result.summary, {
+    grossReceived: 55000, paidCount: 1, openAmount: 180000, openCount: 9,
+    processingAmount: 30000, processingCount: 1, scannedCount: 12, complete: true
+  });
+  assert.equal(JSON.stringify(result).includes('secret_example'), false);
+});
+
+test('duplicate AMG checkout attempts do not inflate open requests after the invoice is paid', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async (url) => {
+    const admin = adminFetch(url);
+    if (admin) return admin;
+    if (url.startsWith('https://api.stripe.com/v1/payment_intents?')) return Response.json({
+      has_more: false,
+      data: [
+        stripeInvoice({ id: 'pi_amgopen123', amount: 450000, metadata: { invoice_id: 'LP-AMG-20261027-01' } }),
+        stripeInvoice({ id: 'pi_amgpaid123', amount: 450000, amount_received: 450000, status: 'succeeded', metadata: { invoice_id: 'LP-AMG-20261027-01' } })
+      ]
+    });
+    throw new Error(`Unexpected request: ${url}`);
+  };
+  const response = await createInvoice(new Request('https://mylaunch.dev/api/payment-links', { headers: { authorization: 'Bearer admin-token' } }));
+  const { summary } = await response.json();
+  assert.equal(summary.grossReceived, 450000);
+  assert.equal(summary.openAmount, 0);
+  assert.equal(summary.openCount, 0);
+});
+
 test('client invoice loads only a server-created Stripe PaymentIntent', async (t) => {
   const originalFetch = globalThis.fetch;
   t.after(() => { globalThis.fetch = originalFetch; });
