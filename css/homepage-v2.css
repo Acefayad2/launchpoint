@@ -132,15 +132,15 @@
 .footer.home-v2 .footer-studio { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; color: #b4bbc1; font-size: .82rem; }
 .footer.home-v2 .footer-studio:hover { color: #fff; text-decoration: underline; text-underline-offset: 4px; }
 
-/* The header stays exactly as it was over the protected hero. */
-.nav.nav-on-light { background: #fff; border-bottom-color: #e4e7ea; }
-.nav.nav-on-light .nav-links a { color: #2a2f33; }
-.nav.nav-on-light .nav-links a:hover { background: #f5f6f7; color: #111315; }
-.nav.nav-on-light .nav-cta { background: #16181a; color: #fff; border-radius: 999px; box-shadow: none; }
-.nav.nav-on-light .nav-toggle span { background: #111315; }
-.nav.nav-on-light .nav-mobile { background: #fff; border-color: #e4e7ea; }
-.nav.nav-on-light .nav-mobile a { color: #2a2f33; }
-.nav.nav-on-light .nav-mobile .nav-cta { color: #fff; }
+.nav, .nav.nav-on-light { background: rgb(255 255 255 / 88%); border-bottom-color: rgb(228 231 234 / 80%); box-shadow: 0 1px 0 rgb(255 255 255 / 55%) inset; backdrop-filter: blur(24px) saturate(140%); -webkit-backdrop-filter: blur(24px) saturate(140%); }
+.nav .nav-links a { color: #2a2f33; }
+.nav .nav-links a:hover, .nav .nav-links a:focus-visible { background: rgb(255 255 255 / 64%); color: #111315; }
+.nav .nav-cta { background: #16181a; color: #fff; border-radius: 999px; box-shadow: none; }
+.nav .nav-cta:hover { background: #303437; box-shadow: none; }
+.nav .nav-toggle span { background: #111315; }
+.nav .nav-mobile { background: rgb(255 255 255 / 97%); border-color: #e4e7ea; }
+.nav .nav-mobile a { color: #2a2f33; }
+.nav .nav-mobile .nav-cta { color: #fff; padding: 12px 20px; justify-content: center; }
 
 @media (max-width: 960px) {
   .home-v2 .v2-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }

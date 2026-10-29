@@ -7,18 +7,32 @@
   const ship = intro.querySelector('.launch-intro-ship');
   const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let finishTimer;
+  let decodeTimer;
   let frameId;
   let release;
+  let resizeRenderer;
+  let render;
   let finished = false;
+  let decoding = false;
+  let imageReady = false;
+  let playing = false;
+  let elapsed = 0;
+  let started = 0;
+  let decodeRemaining = 2500;
+  let decodeStarted = 0;
+
+  window.clearTimeout(window.launchIntroFallback);
 
   const finish = () => {
     if (finished) return;
     finished = true;
     window.clearTimeout(finishTimer);
+    window.clearTimeout(decodeTimer);
     window.cancelAnimationFrame(frameId);
     release?.();
+    skip?.removeEventListener('click', finish);
     window.removeEventListener('scroll', onScroll);
-    window.removeEventListener('resize', finish);
+    window.removeEventListener('resize', onResize);
     window.removeEventListener('hashchange', finish);
     window.removeEventListener('pagehide', finish);
     document.removeEventListener('focusin', onFocus);
@@ -33,16 +47,34 @@
   const onMotionChange = () => { if (motion.matches) finish(); };
   const onFocus = event => { if (!intro.contains(event.target)) finish(); };
   const onKeydown = event => { if (event.key === 'Escape') finish(); };
-  const onVisibility = () => { if (document.hidden) finish(); };
+  const onResize = () => { resizeRenderer?.(); };
+  const pauseDecode = () => {
+    if (decodeTimer === undefined) return;
+    decodeRemaining = Math.max(0, decodeRemaining - (performance.now() - decodeStarted));
+    window.clearTimeout(decodeTimer);
+    decodeTimer = undefined;
+  };
+  const onVisibility = () => {
+    if (!document.hidden) return start();
+    pauseDecode();
+    if (playing) {
+      elapsed += performance.now() - started;
+      playing = false;
+    }
+    window.clearTimeout(finishTimer);
+    window.cancelAnimationFrame(frameId);
+    intro.classList.remove('is-playing');
+    root.classList.remove('launch-pending');
+  };
 
-  if (!root.classList.contains('launch-pending') || motion.matches || document.hidden || window.scrollY > 20 || window.location.hash) {
+  if (motion.matches || window.scrollY > 20 || window.location.hash) {
     finish();
     return;
   }
 
   skip?.addEventListener('click', finish);
   window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', finish, { once: true });
+  window.addEventListener('resize', onResize, { passive: true });
   window.addEventListener('hashchange', finish);
   window.addEventListener('pagehide', finish);
   document.addEventListener('focusin', onFocus);
@@ -50,9 +82,7 @@
   document.addEventListener('visibilitychange', onVisibility);
   motion.addEventListener('change', onMotionChange);
 
-  finishTimer = window.setTimeout(finish, 800);
-  intro.querySelector('img').decode().then(() => {
-    if (finished) return;
+  const createRenderer = () => {
     const gl = canvas.getContext('webgl', { alpha: true, antialias: false, depth: false, stencil: false, powerPreference: 'low-power' });
     if (!gl) return finish();
     const vertex = gl.createShader(gl.VERTEX_SHADER);
@@ -143,23 +173,29 @@
     const position = gl.getAttribLocation(program, 'position');
     gl.enableVertexAttribArray(position);
     gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const ratio = Math.min(1, 800 / viewportWidth, Math.sqrt(320000 / (viewportWidth * viewportHeight)));
-    canvas.width = Math.round(viewportWidth * ratio);
-    canvas.height = Math.round(viewportHeight * ratio);
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.uniform1f(gl.getUniformLocation(program, 'aspect'), viewportWidth / viewportHeight);
+    let viewportHeight;
+    let shipHeight;
+    let travel;
+    let lastDraw = -100;
+    const aspect = gl.getUniformLocation(program, 'aspect');
+    resizeRenderer = () => {
+      const viewportWidth = window.innerWidth;
+      viewportHeight = window.innerHeight;
+      const ratio = Math.min(1, 800 / viewportWidth, Math.sqrt(320000 / (viewportWidth * viewportHeight)));
+      canvas.width = Math.round(viewportWidth * ratio);
+      canvas.height = Math.round(viewportHeight * ratio);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.uniform1f(aspect, viewportWidth / viewportHeight);
+      shipHeight = ship.offsetHeight;
+      travel = viewportHeight * .7 + shipHeight * 1.5;
+      lastDraw = -100;
+    };
+    resizeRenderer();
     const time = gl.getUniformLocation(program, 'time');
     const nozzle = gl.getUniformLocation(program, 'nozzle');
-    const shipHeight = ship.offsetHeight;
-    const travel = viewportHeight * .7 + shipHeight * 1.5;
-    const started = performance.now();
-    let lastDraw = -100;
-    const draw = now => {
-      if (finished) return;
-      if (!root.classList.contains('launch-pending')) return finish();
-      const seconds = (now - started) / 1000;
+    render = now => {
+      if (finished || !playing) return;
+      const seconds = (elapsed + now - started) / 1000;
       if (seconds >= 2.85) return finish();
       const progress = Math.min(seconds / 2.4, 1);
       const y = -travel * (.12 * progress + .88 * progress * progress);
@@ -170,11 +206,42 @@
         gl.uniform1f(nozzle, 1 - (.44 * viewportHeight + shipHeight * .96 + y) / viewportHeight);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       }
-      frameId = window.requestAnimationFrame(draw);
+      frameId = window.requestAnimationFrame(render);
     };
-    draw(started);
+  };
+
+  const start = () => {
+    if (finished || document.hidden || playing) return;
+    if (motion.matches || window.scrollY > 20 || window.location.hash) return finish();
+    root.classList.add('launch-pending');
+    if (!imageReady) {
+      if (decodeTimer !== undefined) return;
+      decodeStarted = performance.now();
+      decodeTimer = window.setTimeout(finish, decodeRemaining);
+      if (!decoding) {
+        decoding = true;
+        intro.querySelector('img').decode().then(() => {
+          if (finished) return;
+          pauseDecode();
+          imageReady = true;
+          start();
+        }).catch(finish);
+      }
+      return;
+    }
+    if (!render) {
+      try { createRenderer(); } catch { return finish(); }
+      if (finished) return;
+    }
+    resizeRenderer();
+    playing = true;
+    started = performance.now();
+    render(started);
+    if (finished) return;
     intro.classList.add('is-playing');
-    window.clearTimeout(finishTimer);
-    finishTimer = window.setTimeout(finish, 3100);
-  }).catch(finish);
+    finishTimer = window.setTimeout(finish, Math.max(0, 3100 - elapsed));
+  };
+
+  if (document.hidden) root.classList.remove('launch-pending');
+  else start();
 })();
