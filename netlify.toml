@@ -46,3 +46,18 @@
     Cache-Control = "no-store"
     Referrer-Policy = "no-referrer"
     X-Robots-Tag = "noindex, nofollow"
+
+# Netlify also serves extensionless URLs through Pretty URLs.
+[[headers]]
+  for = "/admin-setup"
+  [headers.values]
+    Cache-Control = "no-store"
+    Referrer-Policy = "no-referrer"
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/dashboard"
+  [headers.values]
+    Cache-Control = "no-store"
+    Referrer-Policy = "no-referrer"
+    X-Robots-Tag = "noindex, nofollow"
