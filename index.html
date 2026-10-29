@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Orbitron:wght@500;600;700;800&family=Red+Hat+Display:wght@500;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/neural-theme.css?v=20261029-4">
+  <link rel="stylesheet" href="css/neural-theme.css?v=20261029-5">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -44,7 +44,7 @@
   <main id="main-content">
   <section class="hero hero-template" aria-labelledby="hero-title">
     <img class="hero-still" src="assets/template-hero-texture.png" alt="" aria-hidden="true">
-    <canvas class="hero-webgl" id="hero-webgl" aria-hidden="true"></canvas>
+    <video class="hero-video" id="hero-video" muted playsinline preload="none" poster="assets/template-hero-texture.png" aria-hidden="true" data-src="assets/launchpoint-intro.mp4"></video>
     <div class="hero-vignette" aria-hidden="true"></div>
     <div class="hero-content">
       <h1 class="hero-h1" id="hero-title">LaunchPoint</h1>
@@ -293,6 +293,6 @@
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/hero-webgl.js?v=20261029-1" defer></script>
+  <script src="js/hero-video.js?v=20261029-1" defer></script>
 </body>
 </html>
