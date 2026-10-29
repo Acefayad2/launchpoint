@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="css/dashboard-neural.css?v=20261029-4">
   <link rel="stylesheet" href="css/studio.css?v=20261029-5">
   <link rel="stylesheet" href="css/project-workspace.css?v=20261029-portal1">
+  <link rel="stylesheet" href="css/admin-access.css?v=20261029-1">
 </head>
 <body class="dashboard-page" data-auth-state="loading">
   <a class="skip-link" href="#workspace">Skip to workspace</a>
@@ -27,7 +28,7 @@
       </a>
       <p class="section-kicker">Secure workspace</p>
       <h1 id="auth-title">Sign in to the studio.</h1>
-      <p>Sign in with your approved LaunchPoint credentials, or request a secure one-time email link.</p>
+      <p id="auth-description">Sign in with your approved LaunchPoint credentials, then verify your phone to open the studio.</p>
       <form id="auth-form" class="auth-form">
         <label for="auth-email">Email address</label>
         <input id="auth-email" type="email" autocomplete="email" required placeholder="you@mylaunch.dev">
@@ -37,6 +38,19 @@
         <button class="auth-link-action" id="magic-link-button" type="button">Email me a one-time sign-in link</button>
         <p class="form-status" id="auth-status" role="status">Checking your session…</p>
       </form>
+      <section id="admin-verification" class="admin-verification" aria-labelledby="admin-verification-title" hidden>
+        <h2 id="admin-verification-title">One more check.</h2>
+        <p id="admin-phone-label">Verify your registered phone to continue.</p>
+        <button class="secondary-action" id="admin-send-code" type="button">Text me a code</button>
+        <form id="admin-code-form" class="auth-form" hidden>
+          <label for="admin-code">6-digit verification code</label>
+          <input id="admin-code" class="admin-code-input" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" required>
+          <button class="primary-action" type="submit">Verify and open studio</button>
+        </form>
+        <p id="admin-verification-status" class="form-status" role="status" aria-live="polite"></p>
+        <a class="auth-link-action" href="admin-setup.html">Account security &amp; setup</a>
+        <button class="auth-link-action" id="admin-verification-signout" type="button">Use a different account</button>
+      </section>
     </div>
   </section>
 
@@ -56,6 +70,7 @@
         <span>Quick actions</span><kbd>⌘ K</kbd>
       </button>
       <span class="account-email" id="account-email"></span>
+      <a class="account-security-link" href="admin-setup.html" aria-label="Account security" title="Account security">Security</a>
       <button class="avatar-button" id="sign-out-button" type="button" aria-label="Sign out" title="Sign out">↗</button>
     </div>
   </header>
@@ -362,7 +377,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
   <script src="js/supabase-config.js"></script>
-  <script src="js/portal-data.js?v=20261029-portal1"></script>
-  <script src="js/dashboard.js?v=20261029-portal1"></script>
+  <script src="js/portal-data.js?v=20261029-admin1"></script>
+  <script src="js/dashboard.js?v=20261029-admin1"></script>
 </body>
 </html>

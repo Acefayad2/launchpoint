@@ -1,1 +1,9 @@
 node_modules/
+dist/
+.netlify/
+.playwright-cli/
+output/
+supabase/.temp/
+.env
+.env.*
+!.env.example
