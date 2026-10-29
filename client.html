@@ -11,6 +11,7 @@
   <link rel="icon" type="image/png" href="assets/launchpoint-mark-v2.png">
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/client-workspace.css?v=20261029-portal1">
+  <link rel="stylesheet" href="css/change-assist.css?v=20261029-1">
 </head>
 <body class="portal-page" data-auth-state="loading">
   <a class="skip-link" href="#workspace">Skip to your project</a>
@@ -76,6 +77,16 @@
           <p class="workspace-form-intro" id="portal-edit-access"></p>
           <fieldset id="portal-request-fields">
             <legend class="visually-hidden">Describe your edit</legend>
+            <section class="assist" id="change-assist" aria-labelledby="assist-title">
+              <div class="assist-head"><span class="assist-badge">New</span><h3 id="assist-title">Show us instead of typing it out</h3><p>Record your screen or snap photos of what you want changed, add a quick note, and we’ll write up the request for you to check.</p></div>
+              <label class="assist-drop" for="assist-media"><span class="assist-drop-icon" aria-hidden="true">▶</span><span><strong>Choose a screen recording or photos</strong><small>One video up to 5 minutes, or up to 6 photos</small></span></label>
+              <input class="visually-hidden" id="assist-media" type="file" accept="video/mp4,video/quicktime,video/webm,image/jpeg,image/png,image/webp" multiple>
+              <div class="assist-preview" id="assist-preview" hidden></div>
+              <label for="assist-note">What should change?</label><textarea id="assist-note" rows="3" maxlength="2000" placeholder="For example: make the Book Now button bigger and swap the photo at the top for our new storefront"></textarea>
+              <div class="assist-actions"><button class="secondary-action" id="assist-analyze" type="button" disabled>Write it up for me</button><p class="assist-privacy">Your video stays on your device. Only a few still frames are sent to be read, and nothing is stored.</p></div>
+              <p class="form-status" id="assist-status" role="status" aria-live="polite"></p>
+            </section>
+            <p class="assist-or"><span>or write it yourself</span></p>
             <label for="request-title">What would you like changed?</label><input id="request-title" name="title" type="text" maxlength="120" required placeholder="For example, update our homepage photos">
             <label for="request-description">Details</label><textarea id="request-description" name="description" rows="5" maxlength="5000" required placeholder="Tell us what to change and how you’d like it to look."></textarea>
             <label for="request-page-url">Page link <span>Optional</span></label><input id="request-page-url" name="pageUrl" type="url" maxlength="2048" placeholder="https://your-site.com/page">
@@ -121,5 +132,6 @@
   <script src="js/supabase-config.js"></script>
   <script src="js/portal-data.js?v=20261029-portal1"></script>
   <script src="js/client-portal.js?v=20261029-portal1"></script>
+  <script src="js/change-assist.js?v=20261029-1"></script>
 </body>
 </html>
