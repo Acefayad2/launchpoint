@@ -98,6 +98,19 @@
 .dashboard-page .attention-task { color: #c3c0c5; }
 .dashboard-page .attention-number, .dashboard-page .row-arrow { color: #91939b; }
 .dashboard-page .invoice-spotlight { background: radial-gradient(circle at 80% 20%, #6a292448, transparent 55%), #15161b; }
+.dashboard-page .project-shortcuts, .dashboard-page .recent-paid-panel { margin: 22px 0; border: 1px solid #3a383e; border-radius: 9px; background: #15161bd9; box-shadow: 0 18px 45px #0005, inset 0 1px #ffffff0b; overflow: hidden; }
+.dashboard-page .project-shortcut-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; border-top: 1px solid #39373e; background: #39373e; }
+.dashboard-page .project-shortcut-grid a { display: flex; flex-direction: column; gap: 7px; min-height: 138px; padding: 22px 25px; color: #f2eff0; background: #15161b; text-decoration: none; transition: background .2s ease; }
+.dashboard-page .project-shortcut-grid a:hover { background: #272025; }
+.dashboard-page .project-shortcut-grid strong { font: 600 1rem/1.35 var(--body); }
+.dashboard-page .project-shortcut-grid span, .dashboard-page .paid-invoice-row small { color: #a2a5ad; font-size: .76rem; }
+.dashboard-page .project-shortcut-grid em { margin-top: auto; color: #ff9788; font-size: .72rem; font-style: normal; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.dashboard-page .paid-invoice-row { display: flex; justify-content: space-between; gap: 20px; padding: 17px 24px; border-top: 1px solid #37353c; color: #f2eff0; text-decoration: none; transition: background .2s ease; }
+.dashboard-page .paid-invoice-row:hover { background: #242126; }
+.dashboard-page .paid-invoice-row > span { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.dashboard-page .paid-invoice-row > span:last-child { align-items: flex-end; text-align: right; white-space: nowrap; }
+.dashboard-page .paid-invoice-row strong, .dashboard-page .paid-invoice-row b { font-size: .84rem; }
+.dashboard-page .recent-paid-panel .inline-empty { margin: 0; padding: 22px 24px; color: #a2a5ad; font-size: .8rem; }
 .dashboard-page .invoice-spotlight::after { color: #f05a4a1d; }
 .dashboard-page .spotlight-copy, .dashboard-page .spotlight-footnote { color: #a5a4ac; }
 .dashboard-page .spotlight-action { color: #fff; border-color: #70403d; border-radius: 5px; background: #3d2221; box-shadow: none; }
@@ -133,6 +146,8 @@
   .dashboard-page .studio-header { top: 0; width: 100%; margin: 0; border-radius: 0; }
   .dashboard-page .studio-nav { border-color: #504047; }
   .dashboard-page .signal-grid { grid-template-columns: repeat(2, 1fr); }
+  .dashboard-page .project-shortcut-grid { grid-template-columns: 1fr; }
+  .dashboard-page .project-shortcut-grid a { min-height: 110px; }
 }
 @media (max-width: 560px) {
   .dashboard-page .page-heading h1 { font-size: 2rem; }
@@ -140,5 +155,5 @@
   .dashboard-page .signal-card { min-height: 150px; }
 }
 @media (prefers-reduced-transparency: reduce) {
-  .dashboard-page .studio-header, .dashboard-page .payment-builder, .dashboard-page .payment-side, .dashboard-page .work-panel, .dashboard-page .client-table-wrap, .dashboard-page .message-shell, .dashboard-page .invoice-spotlight, .dashboard-page .auth-card { background: #17181c; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .dashboard-page .studio-header, .dashboard-page .payment-builder, .dashboard-page .payment-side, .dashboard-page .work-panel, .dashboard-page .client-table-wrap, .dashboard-page .message-shell, .dashboard-page .invoice-spotlight, .dashboard-page .auth-card, .dashboard-page .project-shortcuts, .dashboard-page .recent-paid-panel { background: #17181c; backdrop-filter: none; -webkit-backdrop-filter: none; }
 }

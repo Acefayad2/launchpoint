@@ -53,16 +53,19 @@ async function recentInvoices(secret: string) {
     const result = await response.json();
     const intents = Array.isArray(result.data) ? result.data : [];
     for (const intent of intents) {
-      if (intent.metadata?.launchpoint_invoice !== '1' || !/^pi_[A-Za-z0-9_]+$/.test(intent.id || '')) continue;
+      const isGeneratedInvoice = intent.metadata?.launchpoint_invoice === '1';
+      const isAmgInvoice = intent.metadata?.invoice_id === 'LP-AMG-20261027-01' && intent.amount === 450_000 && intent.currency === 'usd';
+      if ((!isGeneratedInvoice && !isAmgInvoice) || !/^pi_[A-Za-z0-9_]+$/.test(intent.id || '')) continue;
       invoices.push({
         id: intent.id,
-        reference: intent.metadata.reference || '',
-        company: intent.metadata.company || '',
-        description: intent.metadata.service_description || '',
+        reference: isAmgInvoice ? 'LP-AMG-20261027-01' : intent.metadata.reference || '',
+        company: isAmgInvoice ? 'Anointed Money Group (AMG)' : intent.metadata.company || '',
+        description: isAmgInvoice ? 'Website and CRM invoice' : intent.metadata.service_description || '',
         amount: intent.amount,
         status: intent.status,
         created: intent.created,
-        sent: intent.metadata.sent_via_quo === '1'
+        sent: intent.metadata.sent_via_quo === '1',
+        url: isAmgInvoice ? '/invoice/LP-AMG-20261027-01' : `/invoice/${intent.id}`
       });
       if (invoices.length === 8) break;
     }

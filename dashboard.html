@@ -11,7 +11,7 @@
   <link rel="icon" type="image/png" href="assets/launchpoint-mark-v2.png">
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/dashboard-glass.css?v=20261028-1">
-  <link rel="stylesheet" href="css/dashboard-neural.css?v=20261029-1">
+  <link rel="stylesheet" href="css/dashboard-neural.css?v=20261029-2">
 </head>
 <body class="dashboard-page" data-auth-state="loading">
   <a class="skip-link" href="#workspace">Skip to workspace</a>
@@ -90,6 +90,20 @@
           <p>Client decisions still pending.</p>
         </article>
       </div>
+
+      <section class="project-shortcuts" aria-labelledby="project-shortcuts-title">
+        <header class="panel-heading"><div><p class="section-kicker">Project shortcuts</p><h2 id="project-shortcuts-title">AMG, Yardly, and HMP</h2></div></header>
+        <div class="project-shortcut-grid">
+          <a href="https://anointedmoneygroup.com/" target="_blank" rel="noopener"><strong>Anointed Money Group</strong><span>Website and CRM</span><em>Open site ↗</em></a>
+          <a href="https://yardly-app.netlify.app/" target="_blank" rel="noopener"><strong>Yardly</strong><span>Outdoor-space marketplace</span><em>Open site ↗</em></a>
+          <a href="https://hmpeds.com/" target="_blank" rel="noopener"><strong>HMP</strong><span>Events website and portal</span><em>Open site ↗</em></a>
+        </div>
+      </section>
+
+      <section class="recent-paid-panel" aria-labelledby="recent-paid-title">
+        <header class="panel-heading"><div><p class="section-kicker">Stripe-backed</p><h2 id="recent-paid-title">Recent paid invoices</h2></div><button class="text-action" type="button" data-view-jump="payments">All invoices</button></header>
+        <div id="recent-paid-list" aria-live="polite"><p class="inline-empty">Loading payment history…</p></div>
+      </section>
 
       <div class="overview-grid">
         <section class="work-panel" aria-labelledby="attention-title">
@@ -275,6 +289,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/portal-data.js"></script>
-  <script src="js/dashboard.js?v=20261028-3"></script>
+  <script src="js/dashboard.js?v=20261029-1"></script>
 </body>
 </html>

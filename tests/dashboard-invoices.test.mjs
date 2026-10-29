@@ -95,6 +95,35 @@ test('dashboard invoice history is returned from Stripe without leaking client s
   assert.equal(JSON.stringify(result).includes('secret_example'), false);
 });
 
+test('dashboard includes the real AMG invoice but excludes unrelated and $1 test payments', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async (url) => {
+    const admin = adminFetch(url);
+    if (admin) return admin;
+    if (url.startsWith('https://api.stripe.com/v1/payment_intents?')) return Response.json({
+      has_more: false,
+      data: [
+        stripeInvoice({ id: 'pi_amgpaid123456789', amount: 450000, status: 'succeeded', metadata: { invoice_id: 'LP-AMG-20261027-01' } }),
+        stripeInvoice({ id: 'pi_amgtest123456789', amount: 100, status: 'succeeded', metadata: { invoice_id: 'LP-AMG-20261027-01' } }),
+        stripeInvoice({ id: 'pi_unrelated123456789', amount: 450000, metadata: { invoice_id: 'different-invoice' } })
+      ]
+    });
+    throw new Error(`Unexpected request: ${url}`);
+  };
+  const response = await createInvoice(new Request('https://mylaunch.dev/api/payment-links', {
+    headers: { authorization: 'Bearer admin-token' }
+  }));
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.recentInvoices.length, 1);
+  assert.deepEqual(result.recentInvoices[0], {
+    id: 'pi_amgpaid123456789', reference: 'LP-AMG-20261027-01', company: 'Anointed Money Group (AMG)',
+    description: 'Website and CRM invoice', amount: 450000, status: 'succeeded', created: 1793220000,
+    sent: false, url: '/invoice/LP-AMG-20261027-01'
+  });
+});
+
 test('client invoice loads only a server-created Stripe PaymentIntent', async (t) => {
   const originalFetch = globalThis.fetch;
   t.after(() => { globalThis.fetch = originalFetch; });

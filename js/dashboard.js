@@ -49,6 +49,10 @@
     $('#new-invoice-button').hidden = view === 'payments';
     if (view === 'messages') renderMessages();
     if (view === 'clients') renderClients();
+    if (view === 'overview') {
+      renderRecentPaid();
+      loadPaymentStatus();
+    }
     if (view === 'payments') {
       renderRecentPayments();
       loadPaymentStatus();
@@ -165,6 +169,16 @@
       </article>`).join('') : `<div class="payment-empty"><span>↗</span><p>${escapeHtml(invoiceHistoryError || 'Your newest invoices will appear here after they are created.')}</p></div>`;
   }
 
+  function renderRecentPaid() {
+    const target = $('#recent-paid-list');
+    const paid = invoiceHistory.filter((item) => item.status === 'Paid').slice(0, 4);
+    target.innerHTML = paid.length ? paid.map((item) => `
+      <a class="paid-invoice-row" href="${escapeHtml(item.url)}" target="_blank" rel="noopener">
+        <span><strong>${escapeHtml(item.company)}</strong><small>${escapeHtml(item.description)}</small></span>
+        <span><b>${escapeHtml(item.amount)}</b><small>${escapeHtml(Portal.formatTime(item.createdAt))}</small></span>
+      </a>`).join('') : `<p class="inline-empty">${escapeHtml(invoiceHistoryError || 'No paid LaunchPoint invoices in recent Stripe history yet.')}</p>`;
+  }
+
   function setIntegrationStatus(id, name, connected) {
     const element = $(id);
     element.classList.toggle('is-connected', connected);
@@ -184,12 +198,15 @@
         amount: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.amount / 100),
         createdAt: new Date(item.created * 1000).toISOString(),
         status: item.status === 'succeeded' ? 'Paid' : item.status === 'processing' ? 'Processing' : item.status === 'canceled' ? 'Canceled' : 'Open',
-        url: `${location.origin}/invoice/${encodeURIComponent(item.id)}`
+        url: new URL(item.url?.startsWith('/invoice/') ? item.url : `/invoice/${encodeURIComponent(item.id)}`, location.origin).href
       }));
       renderRecentPayments();
+      renderRecentPaid();
     } catch (error) {
       setIntegrationStatus('#stripe-status', 'Stripe', false);
       setIntegrationStatus('#quo-status', 'Quo', false);
+      invoiceHistoryError = 'Payment history could not load.';
+      renderRecentPaid();
       $('#payment-form-status').textContent = error.message;
     }
   }
