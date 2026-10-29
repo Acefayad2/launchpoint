@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/client-workspace.css?v=20261029-portal1">
   <link rel="stylesheet" href="css/change-assist.css?v=20261029-1">
+  <link rel="stylesheet" href="css/progress-tracker.css?v=20261029-1">
 </head>
 <body class="portal-page" data-auth-state="loading">
   <a class="skip-link" href="#workspace">Skip to your project</a>
@@ -60,7 +61,8 @@
       <div class="workspace-progress-heading"><strong id="portal-progress-number"></strong><span>Project progress</span></div>
       <div class="progress-track" id="portal-progress" role="progressbar" aria-label="Project progress" aria-valuemin="0" aria-valuemax="100"><span id="portal-progress-bar"></span></div>
       <div class="progress-labels"><span id="portal-progress-copy"></span><strong id="portal-target-date"></strong></div>
-      <ol class="milestone-list" id="milestone-list"></ol>
+      <p class="tracker-now" id="portal-tracker-now" aria-live="polite"></p>
+      <ol class="milestone-list tracker" id="milestone-list" aria-label="Project steps"></ol>
     </section>
     <aside class="portal-next-card glass-panel">
       <p class="section-kicker">Up next</p><h2 id="portal-next-title"></h2><p id="portal-next-copy"></p>
@@ -131,7 +133,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/portal-data.js?v=20261029-portal1"></script>
-  <script src="js/client-portal.js?v=20261029-portal1"></script>
+  <script src="js/client-portal.js?v=20261029-tracker1"></script>
   <script src="js/change-assist.js?v=20261029-1"></script>
 </body>
 </html>
