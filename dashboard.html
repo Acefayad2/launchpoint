@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="css/dashboard-glass.css?v=20261028-1">
   <link rel="stylesheet" href="css/dashboard-neural.css?v=20261029-4">
   <link rel="stylesheet" href="css/studio.css?v=20261029-3">
+  <link rel="stylesheet" href="css/project-workspace.css?v=20261029-portal1">
 </head>
 <body class="dashboard-page" data-auth-state="loading">
   <a class="skip-link" href="#workspace">Skip to workspace</a>
@@ -177,6 +178,54 @@
       </div>
     </section>
 
+    <section class="project-workspace" id="project-view" data-view-panel="project" hidden aria-labelledby="project-business-name">
+      <div class="project-workspace-top">
+        <button class="text-action" type="button" data-view-jump="clients">← All clients</button>
+        <button class="secondary-action" id="project-messages-button" type="button">Open conversation <span id="project-message-count"></span></button>
+      </div>
+      <section class="project-overview-card">
+        <div class="project-overview-copy"><p class="section-kicker">Client workspace</p><h2 id="project-business-name"></h2><p id="project-project-name"></p><div class="project-badges" id="project-badges"></div></div>
+        <div class="project-progress-summary"><span id="project-progress-label">Progress not tracked</span><progress id="project-progress" max="100" value="0" aria-label="Project progress"></progress><p id="project-progress-copy">Complete milestones to update the client's tracker.</p></div>
+      </section>
+      <div class="project-workspace-grid">
+        <div class="project-workspace-main">
+          <section class="project-glass-panel" aria-labelledby="project-details-title">
+            <header class="project-panel-heading"><div><p class="section-kicker">Shared with your client</p><h3 id="project-details-title">Project details &amp; progress</h3></div><span id="project-draft-state" class="project-draft-state" role="status"></span></header>
+            <form id="project-form" class="project-editor">
+              <fieldset id="project-fields">
+                <legend class="sr-only">Project details</legend>
+                <div class="project-field-grid">
+                  <label>Company<input id="project-business" name="business" required maxlength="80" autocomplete="organization"></label>
+                  <label>Contact name<input id="project-contact" name="contact" maxlength="80" autocomplete="name"></label>
+                  <label class="project-field-wide">Client email<input id="project-email" name="email" type="email" maxlength="160" autocomplete="email"><small>This address signs in to this client's private portal.</small></label>
+                  <label class="project-field-wide">Project name<input id="project-name" name="project" required maxlength="120"></label>
+                  <label>Status<select id="project-status" name="status"><option value="active">In progress</option><option value="waiting">Waiting for client</option><option value="complete">Complete</option><option value="untracked">Not yet tracked</option></select></label>
+                  <label>Target date<input id="project-target-date" name="targetDate" maxlength="80" placeholder="November 18, 2026"></label>
+                  <label class="project-field-wide">Project summary<textarea id="project-summary" name="summary" rows="3" maxlength="2000" placeholder="What we're building and the outcome we're working toward."></textarea></label>
+                  <label class="project-field-wide">Next step<input id="project-next-step" name="nextStep" required maxlength="120" placeholder="Review the first website draft"></label>
+                  <label class="project-field-wide">Next-step details<textarea id="project-next-copy" name="nextCopy" rows="2" maxlength="2000" placeholder="Explain what happens next or what you need from the client."></textarea></label>
+                </div>
+                <div class="project-milestone-heading"><div><h4>Progress tracker</h4><p>Completed milestones determine the percentage clients see.</p></div><button class="text-action" id="add-project-milestone" type="button">+ Add step</button></div>
+                <div id="project-milestone-editor" class="project-milestone-editor"></div>
+                <div class="project-support-settings"><h4>After launch</h4><div class="project-field-grid"><label>Plan name<input id="project-support-plan" name="supportPlan" maxlength="120" placeholder="Monthly website support"></label><label>Linked Stripe subscription<input id="project-stripe-subscription" name="stripeSubscriptionId" maxlength="100" pattern="sub_[A-Za-z0-9]+" placeholder="sub_…" spellcheck="false"></label></div><p>After the build is complete, edit access follows the linked subscription's verified payment status. Linking an existing subscription does not create a new charge.</p><div class="project-subscription-status"><span id="project-subscription-state">No subscription linked</span><button class="secondary-action" id="project-sync-subscription" type="button">Sync Stripe subscription</button></div><p id="project-subscription-check"></p><p id="project-subscription-message" class="form-status" role="status"></p></div>
+              </fieldset>
+              <footer class="project-editor-footer"><p id="project-save-status" class="form-status" role="status"></p><div><button class="secondary-action" id="revert-project" type="button">Discard changes</button><button class="primary-action" id="save-project" type="submit">Save project</button></div></footer>
+            </form>
+          </section>
+          <section class="project-glass-panel" aria-labelledby="project-requests-title">
+            <header class="project-panel-heading"><div><p class="section-kicker">Client feedback</p><h3 id="project-requests-title">Edit requests <span id="project-request-count"></span></h3></div></header>
+            <p class="project-panel-note">Clients can describe an edit, link the page, and attach supporting files. Status changes appear in their portal.</p>
+            <p id="project-request-status" class="project-inline-status" role="status"></p>
+            <div id="project-request-list" class="project-request-list"></div>
+          </section>
+        </div>
+        <aside class="project-workspace-aside">
+          <section class="project-glass-panel project-access-panel" aria-labelledby="project-access-title"><p class="section-kicker">Private client access</p><h3 id="project-access-title">One link for the project.</h3><p>The client signs in with their saved email to see updates, send edits, share files, and message your team.</p><label for="project-portal-url">Client portal link</label><input id="project-portal-url" type="url" readonly aria-describedby="project-access-note"><div class="project-access-actions"><button class="secondary-action" id="project-copy-link" type="button">Copy link</button><button class="secondary-action" id="project-open-portal" type="button">Open ↗</button></div><button class="primary-action" id="project-email-invite" type="button">Email sign-in invitation</button><p id="project-access-note" class="project-panel-note">Only the saved client email can sign in. A copied link alone does not grant access.</p><p id="project-invite-status" class="form-status" role="status"></p></section>
+          <section class="project-glass-panel project-files-panel" aria-labelledby="project-files-title"><header class="project-panel-heading"><div><p class="section-kicker">Shared assets</p><h3 id="project-files-title">Project files</h3></div><span id="project-file-count"></span></header><form id="project-upload-form" class="project-upload-form"><label for="project-upload">Add files for this client</label><input id="project-upload" type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.docx,.zip"><p>Up to 5 files at a time, 10 MB each. PDF, images, text, DOCX, or ZIP.</p><button class="secondary-action" type="submit">Upload files</button><p id="project-upload-status" class="form-status" role="status"></p></form><div id="project-file-list" class="project-file-list"></div></section>
+        </aside>
+      </div>
+    </section>
+
     <section class="messages-view" id="messages-view" data-view-panel="messages" hidden>
       <div class="message-shell">
         <aside class="thread-sidebar">
@@ -199,6 +248,7 @@
               <div><h2 id="conversation-client-name">Northline Wellness</h2><p id="conversation-project-name">Website &amp; booking flow</p></div>
             </div>
             <div class="conversation-tools">
+              <button class="secondary-action" id="conversation-open-project" type="button">Project workspace</button>
               <button class="icon-action" id="copy-portal-link" type="button" aria-label="Copy client portal link">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="10" height="10" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path></svg>
               </button>
@@ -211,7 +261,7 @@
             <textarea id="message-input" rows="3" maxlength="1200" placeholder="Write a clear update or next step…" required></textarea>
             <div class="composer-footer">
               <div class="composer-options">
-                <button class="icon-action" type="button" aria-label="Attach a file" disabled title="Attachments are coming next">
+                <button class="icon-action" id="message-project-files" type="button" aria-label="Open project files" title="Share files in the project workspace">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 12-8.5 8.5a6 6 0 0 1-8.5-8.5L12 3a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 1 1-2.8-2.8L14 6.8"></path></svg>
                 </button>
                 <span>Encrypted in transit and shared instantly</span>
@@ -295,6 +345,8 @@
         <label>Status<select name="status"><option value="active">Active</option><option value="waiting">Waiting</option><option value="complete">Complete</option></select></label>
         <label>Next step<input name="nextStep" required maxlength="120" placeholder="Review homepage direction"></label>
       </div>
+      <label class="client-invite-option"><input id="client-send-invite" type="checkbox" name="sendInvite" checked><span>Email the client a secure sign-in invitation<small>Their workspace opens as soon as the client is created.</small></span></label>
+      <p class="form-status" id="client-create-status" role="status"></p>
       <footer><button class="secondary-action" value="cancel" type="submit" formnovalidate>Cancel</button><button class="primary-action" value="save" type="submit">Add client</button></footer>
     </form>
   </dialog>
@@ -309,7 +361,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
   <script src="js/supabase-config.js"></script>
-  <script src="js/portal-data.js"></script>
-  <script src="js/dashboard.js?v=20261029-5"></script>
+  <script src="js/portal-data.js?v=20261029-portal1"></script>
+  <script src="js/dashboard.js?v=20261029-portal1"></script>
 </body>
 </html>

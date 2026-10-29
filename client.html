@@ -7,16 +7,18 @@
   <title>Your LaunchPoint | Client portal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Red+Hat+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Red+Hat+Display:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="assets/launchpoint-mark-v2.png">
   <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/client-workspace.css?v=20261029-portal1">
 </head>
 <body class="portal-page" data-auth-state="loading">
+  <a class="skip-link" href="#workspace">Skip to your project</a>
   <section class="auth-gate" id="auth-gate" aria-labelledby="auth-title">
     <div class="auth-card">
       <a class="auth-brand" href="/"><img class="auth-brand-logo" src="assets/launchpoint-logo-v2.png" alt="LaunchPoint"></a>
       <p class="section-kicker">Private client space</p>
-      <h1 id="auth-title">Open your project portal.</h1>
+      <h1 id="auth-title">Your project.<br>One shared space.</h1>
       <p>Use the same email address where LaunchPoint sent your portal invitation.</p>
       <form id="auth-form" class="auth-form">
         <label for="auth-email">Email address</label>
@@ -29,61 +31,95 @@
 
   <header class="portal-header authenticated-only">
     <a href="/" class="portal-brand" aria-label="LaunchPoint home"><img class="portal-brand-logo" src="assets/launchpoint-logo-v2.png" alt="LaunchPoint"></a>
-    <div class="portal-account"><span class="portal-secure"><span></span> Private client space</span><span id="account-email"></span><button id="sign-out-button" type="button">Sign out</button></div>
+    <div class="portal-account"><span class="portal-secure"><span></span> Client workspace</span><span id="account-email"></span><button id="sign-out-button" type="button">Sign out</button></div>
   </header>
 
-  <main class="portal-main authenticated-only">
-    <section class="portal-intro">
-      <p class="eyebrow" id="portal-stage">Project in progress</p>
-      <h1>Hi <span id="portal-first-name">Maya</span>,<br>here’s where we are.</h1>
-      <p id="portal-project-summary">Your new website and booking flow are taking shape. Everything you need to review is collected here.</p>
+  <main class="portal-main authenticated-only" id="workspace">
+    <section class="workspace-unavailable glass-panel" id="portal-unavailable" hidden>
+      <p class="section-kicker">Private workspace</p><h1>We couldn’t open this project.</h1>
+      <p id="portal-unavailable-copy">Use the email address on your LaunchPoint invitation. Your account can only access projects shared with you.</p>
+      <button class="secondary-action" id="retry-project" type="button">Try again</button>
+      <a href="mailto:hello@mylaunch.dev">Contact LaunchPoint</a>
     </section>
+    <div id="portal-content" hidden>
+    <section class="portal-intro">
+      <div><p class="eyebrow" id="portal-stage"></p>
+      <h1><span id="portal-first-name"></span>,<br>let’s build what’s next.</h1>
+      <p id="portal-project-summary"></p></div>
+      <nav class="workspace-jump-links" aria-label="Your workspace"><a href="#project-updates">Request an edit <span aria-hidden="true">↗</span></a><a href="#project-messages">Message the studio <span aria-hidden="true">↗</span></a></nav>
+    </section>
+    <p class="workspace-sync-status" id="portal-sync-status" role="status"></p>
 
-    <section class="portal-status" aria-labelledby="portal-project-title">
+    <div class="workspace-project-grid">
+    <section class="portal-status glass-panel" aria-labelledby="portal-project-title">
       <div class="portal-project-head">
-        <div><p class="section-kicker">Current project</p><h2 id="portal-project-title">Website &amp; booking flow</h2></div>
-        <span class="status-chip status-active" id="portal-status-chip">In progress</span>
+        <div><p class="section-kicker">Your project</p><h2 id="portal-project-title"></h2></div>
+        <span class="status-chip" id="portal-status-chip"></span>
       </div>
-      <div class="progress-track"><span id="portal-progress-bar"></span></div>
-      <div class="progress-labels"><span id="portal-progress-copy">2 of 4 milestones complete</span><strong id="portal-target-date">Target: Nov 14</strong></div>
+      <div class="workspace-progress-heading"><strong id="portal-progress-number"></strong><span>Project progress</span></div>
+      <div class="progress-track" id="portal-progress" role="progressbar" aria-label="Project progress" aria-valuemin="0" aria-valuemax="100"><span id="portal-progress-bar"></span></div>
+      <div class="progress-labels"><span id="portal-progress-copy"></span><strong id="portal-target-date"></strong></div>
       <ol class="milestone-list" id="milestone-list"></ol>
+    </section>
+    <aside class="portal-next-card glass-panel">
+      <p class="section-kicker">Up next</p><h2 id="portal-next-title"></h2><p id="portal-next-copy"></p>
+      <button class="primary-action portal-review-action" id="portal-review-button" type="button" hidden></button>
+      <p class="form-status" id="portal-approval-status" role="status"></p>
+      <div class="workspace-care"><span id="portal-care-status"></span><strong id="portal-care-plan"></strong><p id="portal-care-copy"></p></div>
+    </aside>
+    </div>
+
+    <section class="workspace-edits glass-panel" id="project-updates" aria-labelledby="portal-edits-title">
+      <header class="panel-heading"><div><p class="section-kicker">Make it yours</p><h2 id="portal-edits-title">Edits &amp; requests</h2></div><span class="workspace-count" id="portal-request-count"></span></header>
+      <div class="workspace-edits-grid">
+        <form id="portal-request-form" class="workspace-form">
+          <p class="workspace-form-intro" id="portal-edit-access"></p>
+          <fieldset id="portal-request-fields">
+            <legend class="visually-hidden">Describe your edit</legend>
+            <label for="request-title">What would you like changed?</label><input id="request-title" name="title" type="text" maxlength="120" required placeholder="For example, update our homepage photos">
+            <label for="request-description">Details</label><textarea id="request-description" name="description" rows="5" maxlength="5000" required placeholder="Tell us what to change and how you’d like it to look."></textarea>
+            <label for="request-page-url">Page link <span>Optional</span></label><input id="request-page-url" name="pageUrl" type="url" maxlength="2048" placeholder="https://your-site.com/page">
+            <label for="request-files">Reference files <span>Optional</span></label><input id="request-files" type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.docx,.zip" aria-describedby="request-files-help">
+            <small id="request-files-help">Up to 5 files, 10 MB each. PDF, images (PNG, JPG, WebP), TXT, DOCX or ZIP.</small>
+          </fieldset>
+          <div class="workspace-form-actions"><button class="primary-action" id="portal-request-submit" type="submit">Send edit request <span aria-hidden="true">↗</span></button><button class="text-action" id="portal-request-finish" type="button" hidden>Finish without remaining files</button></div>
+          <p class="form-status" id="portal-request-status" role="status"></p>
+        </form>
+        <div class="workspace-requests" id="portal-request-list" aria-label="Your edit requests"></div>
+      </div>
     </section>
 
     <div class="portal-grid">
-      <section class="portal-message-card" aria-labelledby="portal-messages-title">
+      <section class="portal-message-card glass-panel" id="project-messages" aria-labelledby="portal-messages-title">
         <header class="panel-heading">
           <div><p class="section-kicker">Direct line</p><h2 id="portal-messages-title">Messages</h2></div>
-          <span class="live-indicator"><span></span> LaunchPoint</span>
+          <span class="workspace-panel-note">Private conversation</span>
         </header>
         <div class="portal-message-history" id="portal-message-history" aria-live="polite"></div>
         <form class="portal-reply" id="portal-reply-form">
           <label for="portal-reply-input">Reply to LaunchPoint</label>
           <textarea id="portal-reply-input" rows="3" maxlength="1200" placeholder="Ask a question or leave feedback…" required></textarea>
-          <div><span>Your reply is delivered securely to LaunchPoint.</span><button class="primary-action" type="submit">Send reply</button></div>
+          <div><span>Shared with your LaunchPoint team.</span><button class="primary-action" type="submit">Send message</button></div>
           <p class="form-status" id="portal-reply-status" role="status"></p>
         </form>
       </section>
 
-      <aside class="portal-next-card">
-        <p class="section-kicker">Your next step</p>
-        <h2 id="portal-next-title">Review homepage direction</h2>
-        <p id="portal-next-copy">We’ve prepared the first visual direction. Review the layout and leave one clear round of feedback.</p>
-        <button class="primary-action portal-review-action" id="portal-review-button" type="button">Review &amp; approve</button>
-        <div class="portal-contact">
-          <span class="client-mark">JF</span>
-          <div><strong>Your LaunchPoint contact</strong><span>Jacob Fayad · Usually replies within a business day</span></div>
+      <section class="workspace-files glass-panel" aria-labelledby="portal-files-title">
+        <header class="panel-heading"><div><p class="section-kicker">All in one place</p><h2 id="portal-files-title">Project files</h2></div></header>
+        <div class="workspace-files-body"><p>Share your logo, copy, photos and reference documents. Files stay inside your project.</p>
+          <form id="portal-file-form" class="workspace-form"><label for="project-files">Add project files</label><input id="project-files" type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.docx,.zip" aria-describedby="project-files-help" required><small id="project-files-help">Up to 5 files, 10 MB each. PDF, PNG, JPG, WebP, TXT, DOCX or ZIP.</small><button class="secondary-action" id="portal-file-submit" type="submit">Upload files</button><button class="text-action" id="portal-file-finish" type="button" hidden>Skip remaining files</button><p class="form-status" id="portal-file-status" role="status"></p></form>
+          <div id="portal-file-list" class="workspace-file-list"></div><p class="form-status" id="portal-download-status" role="status"></p>
         </div>
-      </aside>
+      </section>
     </div>
-
-    <footer class="portal-footer"><span>LaunchPoint Technologies, Inc.</span><a href="mailto:hello@mylaunch.dev">Need help? Contact us</a></footer>
+    </div>
+    <footer class="portal-footer"><span>LaunchPoint · Your client workspace</span><div><a href="/">LaunchPoint home</a><a href="mailto:hello@mylaunch.dev">Need help? Contact us</a></div></footer>
   </main>
 
-  <div class="demo-banner authenticated-only" role="note"><strong>Secure portal</strong><span>Your updates sync across devices.</span></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
   <script src="js/supabase-config.js"></script>
-  <script src="js/portal-data.js"></script>
-  <script src="js/client-portal.js"></script>
+  <script src="js/portal-data.js?v=20261029-portal1"></script>
+  <script src="js/client-portal.js?v=20261029-portal1"></script>
 </body>
 </html>
