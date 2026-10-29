@@ -12,4 +12,11 @@ test('production publish directory contains browser files only', async () => {
   const config = await readFile(new URL('../netlify.toml', import.meta.url), 'utf8');
   assert.match(config, /publish = "dist"/);
   assert.match(config, /command = "npm run build"/);
+  for (const route of ['/admin-setup', '/admin-setup.html', '/dashboard', '/dashboard.html']) {
+    const header = config.split('[[headers]]').find(block => block.includes(`for = "${route}"`));
+    assert.ok(header, `Security headers must cover ${route}`);
+    assert.match(header, /Cache-Control = "no-store"/);
+    assert.match(header, /Referrer-Policy = "no-referrer"/);
+    assert.match(header, /X-Robots-Tag = "noindex, nofollow"/);
+  }
 });
