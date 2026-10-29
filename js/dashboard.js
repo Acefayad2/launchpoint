@@ -93,7 +93,7 @@
     $('#admin-verification').hidden = false;
     $('#admin-phone-label').textContent = status.phoneMasked
       ? `We’ll text a one-use code to ${status.phoneMasked}. It expires after 5 minutes.`
-      : 'Finish the setup link sent to your phone, or contact another LaunchPoint administrator.';
+      : 'Your email is signed in, but admin setup is not finished. Reopen the latest LaunchPoint setup text in this browser, then choose “Text me a code” and verify your phone. Do not create the account again.';
     $('#admin-send-code').hidden = !status.phoneMasked;
     $('#admin-verification-status').textContent = message;
   }

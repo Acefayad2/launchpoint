@@ -7,6 +7,10 @@
   let session = null;
   let access = null;
   let mode = 'signin';
+  let modeInitialized = false;
+  let pendingEmail = '';
+  let emailResendAt = 0;
+  const pendingEmailKey = 'launchpoint-admin-pending-email';
   let challengeId = '';
   let resendAt = 0;
   let resendTimer;
@@ -21,6 +25,7 @@
   const fragment = new URLSearchParams(location.hash.slice(1));
   const incomingInvite = fragment.get('invite');
   if (incomingInvite) {
+    try { if (sessionStorage.getItem(inviteStorageKey) !== incomingInvite) sessionStorage.removeItem(pendingEmailKey); } catch (_) { /* Storage is optional. */ }
     inviteToken = incomingInvite;
     try { sessionStorage.setItem(inviteStorageKey, inviteToken); } catch (_) { /* Keep this tab open if storage is unavailable. */ }
     fragment.delete('invite');
@@ -28,19 +33,23 @@
   } else {
     try { inviteToken = sessionStorage.getItem(inviteStorageKey) || ''; } catch (_) { /* Setup can resume from the original SMS link. */ }
   }
+  try { if (inviteToken) pendingEmail = sessionStorage.getItem(pendingEmailKey) || ''; } catch (_) { /* Storage is optional. */ }
 
   function notice(message = '') { $('#setup-status').textContent = message; }
   function hideSections() {
-    for (const id of ['setup-auth', 'setup-verify', 'setup-security', 'setup-invite', 'setup-dashboard-link']) $(`#${id}`).hidden = true;
+    for (const id of ['setup-auth', 'setup-email-pending', 'setup-verify', 'setup-security', 'setup-invite', 'setup-dashboard-link']) $(`#${id}`).hidden = true;
   }
   function clearSecrets() {
     for (const id of ['setup-password', 'setup-password-confirm', 'setup-code', 'security-password', 'security-password-confirm', 'security-nonce']) $(`#${id}`).value = '';
   }
   function clearInvite() {
     inviteToken = ''; invite = null;
+    pendingEmail = ''; modeInitialized = false;
+    try { sessionStorage.removeItem(pendingEmailKey); } catch (_) { /* Storage is optional. */ }
     try { sessionStorage.removeItem(inviteStorageKey); } catch (_) { /* Already held in memory only. */ }
   }
   function setMode(next) {
+    modeInitialized = true;
     mode = next;
     const create = mode === 'signup';
     $('#setup-auth-title').textContent = create ? 'Create your account.' : 'Sign in to your account.';
@@ -54,6 +63,14 @@
     $('#setup-toggle-auth').hidden = !invite || invite.existingAccount;
     $('#setup-toggle-auth').textContent = create ? 'Already have an account? Sign in' : 'Need a new account? Create one';
     $('#setup-magic-link').hidden = create;
+    clearSecrets();
+  }
+  function showEmailPending(email) {
+    pendingEmail = email;
+    try { sessionStorage.setItem(pendingEmailKey, email); } catch (_) { /* Keep this tab open. */ }
+    hideSections();
+    $('#setup-email-pending').hidden = false;
+    $('#setup-email-pending-copy').textContent = `Check ${email} and confirm your address before signing in. If you already registered this email, use your existing password after confirmation.`;
     clearSecrets();
   }
   function showSecurity(status) {
@@ -111,8 +128,9 @@
       }
       hideSections();
       if (!session) {
+        if (pendingEmail && invite) { showEmailPending(pendingEmail); return; }
         $('#setup-auth').hidden = false;
-        setMode(invite && !invite.existingAccount ? 'signup' : 'signin');
+        if (!modeInitialized) setMode(invite && !invite.existingAccount ? 'signup' : 'signin');
         notice(recoveryNotice || (inviteToken ? '' : 'Sign in to manage your account. New administrators need the private setup link sent to their phone.'));
         return;
       }
@@ -121,6 +139,8 @@
         return;
       }
       $('#setup-verify').hidden = false;
+      pendingEmail = '';
+      try { sessionStorage.removeItem(pendingEmailKey); } catch (_) { /* Storage is optional. */ }
       $('#setup-session-email').textContent = `Signed in as ${session.user.email}`;
       $('#setup-phone-label').textContent = `We’ll send a one-use code to ${invite?.phoneMasked || access?.phoneMasked || 'your registered phone'}.`;
       notice('Verify the invited phone to finish securing your admin account.');
@@ -147,15 +167,48 @@
         ready = Boolean(data.session);
         if (ready) await Portal.acceptSignInSession(data.session);
         if (!ready) {
-          setMode('signin');
-          notice('Check your email and confirm your address. Then return to this tab or reopen the original setup text to verify your phone. If this email already has an account, sign in below.');
+          emailResendAt = Date.now() + 60_000;
+          showEmailPending(email);
+          notice('Check your email and confirm your address. Your invitation is saved in this tab; phone verification is still required.');
         }
       } else {
         await Portal.signInWithPassword(email, password); ready = true;
       }
-    } catch (error) { notice(error.message); }
+    } catch (error) {
+      if (error.code === 'email_not_confirmed') { showEmailPending(email); notice('Confirm your email before signing in. You can resend the confirmation below.'); }
+      else if (error.code === 'invalid_credentials') notice('That email and password did not sign in. For a new account, choose “Need a new account? Create one.” Creating an account does not change the password of an existing account.');
+      else notice(error.message);
+    }
     finally { clearSecrets(); button.disabled = false; operationInFlight = false; }
     if (ready) await refresh();
+  });
+  $('#setup-email-continue').addEventListener('click', async () => {
+    const email = pendingEmail;
+    pendingEmail = '';
+    try { sessionStorage.removeItem(pendingEmailKey); } catch (_) { /* Storage is optional. */ }
+    setMode('signin');
+    $('#setup-email').value = email;
+    await refresh();
+    if (!session) notice('Sign in with the email and password you just created, then verify your invited phone.');
+  });
+  $('#setup-email-change').addEventListener('click', async () => {
+    pendingEmail = '';
+    try { sessionStorage.removeItem(pendingEmailKey); } catch (_) { /* Storage is optional. */ }
+    setMode(invite?.existingAccount ? 'signin' : 'signup');
+    await refresh();
+  });
+  $('#setup-email-resend').addEventListener('click', async (event) => {
+    if (!pendingEmail || operationInFlight) return;
+    if (Date.now() < emailResendAt) return notice('Please wait one minute between confirmation emails. Use the most recent email link.');
+    const button = event.currentTarget;
+    button.disabled = true; operationInFlight = true;
+    try {
+      const { error } = await Portal.db.auth.resend({ type: 'signup', email: pendingEmail, options: { emailRedirectTo: redirectTo } });
+      if (error) throw error;
+      emailResendAt = Date.now() + 60_000;
+      notice('Confirmation requested. Check your inbox and spam folder, and use only the latest email link.');
+    } catch (error) { notice(error.message); }
+    finally { button.disabled = false; operationInFlight = false; }
   });
   $('#setup-magic-link').addEventListener('click', async (event) => {
     const email = $('#setup-email').value.trim().toLowerCase();

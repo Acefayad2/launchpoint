@@ -73,6 +73,7 @@ async function harness({ dashboard = false, session = signedIn(), status = verif
     subscribe: () => { calls.push({ action: 'subscribe' }); return () => calls.push({ action: 'unsubscribe' }); }, initials: () => 'LP', formatTime: () => '',
     db: { auth: {
       signUp: async data => { calls.push({ action: 'signup', data }); return signUpResult; },
+      resend: async data => { calls.push({ action: 'resend-confirmation', data }); return { error: null }; },
       updateUser: async (data, options) => { calls.push({ action: 'update-user', data, options }); return { error: updateError }; },
       signInWithOtp: async data => { calls.push({ action: 'magic-link', data }); return { error: null }; },
       reauthenticate: async () => { calls.push({ action: 'reauthenticate' }); return { error: null }; }
@@ -126,6 +127,52 @@ test('new admin rejects short or mismatching passwords before calling auth', asy
   await ui.emit('#setup-auth-form', 'submit');
   assert.equal(ui.calls.some(call => call.action === 'signup'), false);
   assert.match(ui.get('#setup-status').textContent, /12 characters/);
+});
+
+test('signup waits for email confirmation instead of inviting premature login; focus preserves the step', async () => {
+  const ui = await harness({ session: null, hash: '#invite=opaque-invite' });
+  ui.get('#setup-email').value = 'new@example.com';
+  ui.get('#setup-password').value = 'private-password-123';
+  ui.get('#setup-password-confirm').value = 'private-password-123';
+  await ui.emit('#setup-auth-form', 'submit');
+  assert.equal(ui.get('#setup-email-pending').hidden, false);
+  assert.equal(ui.get('#setup-auth').hidden, true);
+  await ui.events.focus();
+  assert.equal(ui.get('#setup-email-pending').hidden, false);
+  await ui.emit('#setup-email-resend', 'click');
+  assert.equal(ui.calls.some(call => call.action === 'resend-confirmation'), false, 'Immediate resend is throttled');
+  await ui.emit('#setup-email-continue', 'click');
+  assert.equal(ui.get('#setup-auth').hidden, false);
+  assert.equal(ui.get('#setup-auth-submit').textContent, 'Sign in');
+  assert.equal(ui.get('#setup-email').value, 'new@example.com');
+  assert.equal(ui.storage.has('launchpoint-admin-pending-email'), false);
+});
+
+test('returning from a password manager does not clear signup fields or reset chosen signin', async () => {
+  const ui = await harness({ session: null, hash: '#invite=opaque-invite' });
+  ui.get('#setup-password').value = 'private-password-123';
+  ui.get('#setup-password-confirm').value = 'private-password-123';
+  await ui.events.focus();
+  assert.equal(ui.get('#setup-password').value, 'private-password-123');
+  await ui.emit('#setup-toggle-auth', 'click');
+  ui.get('#setup-password').value = 'existing-password-123';
+  await ui.events.focus();
+  assert.equal(ui.get('#setup-auth-submit').textContent, 'Sign in');
+  assert.equal(ui.get('#setup-password').value, 'existing-password-123');
+});
+
+test('confirmed account returns to invitation phone verification without granting access early', async () => {
+  const ui = await harness({ session: null, hash: '#invite=opaque-invite', status: { isAdmin: false, verified: false } });
+  ui.get('#setup-email').value = 'new@example.com';
+  ui.get('#setup-password').value = 'private-password-123';
+  ui.get('#setup-password-confirm').value = 'private-password-123';
+  await ui.emit('#setup-auth-form', 'submit');
+  ui.state.session = signedIn();
+  await ui.events.focus();
+  assert.equal(ui.get('#setup-email-pending').hidden, true);
+  assert.equal(ui.get('#setup-verify').hidden, false);
+  assert.equal(ui.get('#setup-dashboard-link').hidden, true);
+  assert.equal(ui.calls.some(call => call.action === 'send-code'), false);
 });
 
 test('existing owner invitation requires signing in to existing account, not signup', async () => {

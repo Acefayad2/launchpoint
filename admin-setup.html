@@ -43,6 +43,14 @@
           <button class="auth-link-action" id="setup-toggle-auth" type="button">Already have an account? Sign in</button>
           <button class="auth-link-action" id="setup-magic-link" type="button" hidden>Email me a sign-in link</button>
         </section>
+        <section id="setup-email-pending" hidden aria-labelledby="setup-email-pending-title">
+          <h2 id="setup-email-pending-title">Confirm your email next.</h2>
+          <p id="setup-email-pending-copy"></p>
+          <p>Open the latest confirmation email once, then return to this tab. If it opens another browser or the dashboard, reopen your latest LaunchPoint setup text to finish phone verification. You do not need to create the account again.</p>
+          <button id="setup-email-continue" class="primary-action" type="button">I confirmed my email — continue</button>
+          <button id="setup-email-resend" class="auth-link-action" type="button">Resend confirmation email</button>
+          <button id="setup-email-change" class="auth-link-action" type="button">Use a different email</button>
+        </section>
         <section id="setup-verify" hidden aria-labelledby="setup-verify-title">
           <p class="admin-session-label" id="setup-session-email"></p>
           <h2 id="setup-verify-title">Verify it’s you.</h2>
@@ -92,6 +100,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/portal-data.js?v=20261029-admin1"></script>
-  <script src="js/admin-setup.js?v=20261029-2"></script>
+  <script src="js/admin-setup.js?v=20261029-3"></script>
 </body>
 </html>
