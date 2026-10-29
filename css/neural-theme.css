@@ -68,11 +68,11 @@ h3 { font-family: 'Manrope', sans-serif; letter-spacing: -.035em; }
 @keyframes hero-word-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 
 .services, .proof, .cta-band { background: #090a0d; }
-.process, .pricing, .contact { background: #101115; }
-.services, .process, .proof, .pricing, .contact { padding-block: clamp(90px, 10vw, 150px); }
+.process, .contact { background: #101115; }
+.services, .process, .proof, .contact { padding-block: clamp(90px, 10vw, 150px); }
 .services-header { position: relative; }
-.services-header::before, .process .container::before, .proof .container::before, .pricing .container::before, .contact-text::before { content: 'LAUNCHPOINT / SYSTEMS'; display: block; margin-bottom: 23px; color: #f07a6b; font: 700 .63rem/1.2 'Manrope', sans-serif; letter-spacing: .22em; }
-.services-header p, .service-feature-content p, .service-card p, .process-step-content p, .pricing-sub, .contact-text > p { color: #a9a9b1; }
+.services-header::before, .process .container::before, .proof .container::before, .contact-text::before { content: 'LAUNCHPOINT / SYSTEMS'; display: block; margin-bottom: 23px; color: #f07a6b; font: 700 .63rem/1.2 'Manrope', sans-serif; letter-spacing: .22em; }
+.services-header p, .service-feature-content p, .service-card p, .process-step-content p, .contact-text > p { color: #a9a9b1; }
 .service-feature { border-color: #4e2927; background: radial-gradient(circle at 90% 20%, #732c234a, transparent 42%), #131418; border-radius: 12px; overflow: hidden; box-shadow: 0 24px 80px #0005; }
 .service-feature-visual { transform: perspective(800px) rotateY(-7deg); }
 .mock-browser { border-color: #713a32; background: #0c0e12; box-shadow: 0 22px 40px #0008, 0 0 40px #ff604925; }
@@ -91,12 +91,6 @@ h3 { font-family: 'Manrope', sans-serif; letter-spacing: -.035em; }
 .proof-number { color: #ff6f60; font-family: 'Manrope', sans-serif; }
 .testimonial { border-color: #33343a; background: #111216; border-radius: 10px; }
 .testimonial p { color: #ddd9da; }
-.pricing-grid { align-items: stretch; }
-.pricing-tier { display: flex; flex-direction: column; border-color: #34343a; border-radius: 9px; background: #111216; }
-.pricing-tier .btn-outline, .pricing-tier .btn-primary { margin-top: auto; }
-.pricing-featured { background: radial-gradient(circle at 50% 0%, #551f1b65, transparent 50%), #151317; box-shadow: 0 0 45px #f05a4a17; }
-.pricing-badge { border-radius: 3px; color: #120b0a; letter-spacing: .06em; text-transform: uppercase; }
-.pricing-name { font-family: 'Manrope', sans-serif; }
 .cta-band { border-block: 1px solid #f05a4a2c; background: radial-gradient(circle at 50% 50%, #59221f6e, transparent 60%), #0b0a0d; }
 .cta-band::before { background: none; }
 .contact-form { border: 1px solid #36353b; background: #15161a; padding: clamp(24px, 3.5vw, 40px); border-radius: 9px; }

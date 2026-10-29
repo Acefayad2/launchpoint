@@ -17,7 +17,7 @@ document.querySelectorAll('.nav-mobile a').forEach(link => {
 
 // Scroll reveal
 const revealEls = document.querySelectorAll(
-  '.service-card, .service-feature, .testimonial, .process-step, .pricing-tier, .proof-stat'
+  '.service-card, .service-feature, .testimonial, .process-step, .proof-stat'
 );
 const revealObs = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
