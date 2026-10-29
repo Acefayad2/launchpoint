@@ -144,6 +144,7 @@
 .dashboard-page .status-active { color: #a8ddc0; background: #1c3a2b; }
 .dashboard-page .status-waiting { color: #eed3a0; background: #473720; }
 .dashboard-page .status-complete { color: #b8c8e5; background: #293448; }
+.dashboard-page .status-untracked { color: #c8c4be; background: #343334; }
 .dashboard-page .thread-sidebar, .dashboard-page .conversation-head, .dashboard-page .composer, .dashboard-page .client-context { border-color: #37353c; }
 .dashboard-page .thread-item.is-active { background: #352323; box-shadow: inset 3px 0 #f05a4a; }
 .dashboard-page .message-history { background: #101115; }

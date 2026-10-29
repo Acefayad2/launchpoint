@@ -106,6 +106,7 @@ kbd { padding: 3px 5px; border: 1px solid var(--line); border-radius: 4px; backg
 .status-active { background: #e6f0eb; color: var(--green); }
 .status-waiting { background: #f6ecdb; color: var(--amber); }
 .status-complete { background: #e6ecf0; color: var(--blue); }
+.status-untracked { background: #ecebea; color: #6b6864; }
 .day-panel { padding-bottom: 18px; }
 .day-list { margin: 0 26px; padding: 0; list-style: none; border-top: 1px solid var(--line); }
 .day-list li { min-height: 67px; display: grid; grid-template-columns: 48px 1fr; align-items: center; border-bottom: 1px solid var(--line); }

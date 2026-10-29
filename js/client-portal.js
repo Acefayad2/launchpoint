@@ -19,13 +19,13 @@
 
   function render() {
     document.title = `${client.business} | LaunchPoint client portal`;
-    $('#portal-first-name').textContent = client.contact.split(' ')[0];
+    $('#portal-first-name').textContent = client.contact?.split(' ')[0] || client.business;
     $('#portal-project-summary').textContent = client.summary;
     $('#portal-project-title').textContent = client.project;
     $('#portal-stage').textContent = client.status === 'complete' ? 'Project live' : client.status === 'waiting' ? 'Ready for your review' : 'Project in progress';
     $('#portal-status-chip').textContent = client.status === 'complete' ? 'Live' : client.status === 'waiting' ? 'Your review' : 'In progress';
     $('#portal-status-chip').className = `status-chip status-${client.status}`;
-    $('#portal-progress-bar').style.width = `${client.progress}%`;
+    $('#portal-progress-bar').style.width = `${client.progress ?? 0}%`;
     const complete = client.milestones.filter((item) => item.state === 'complete').length;
     $('#portal-progress-copy').textContent = `${complete} of ${client.milestones.length} milestones complete`;
     $('#portal-target-date').textContent = `Target: ${client.targetDate}`;
@@ -85,7 +85,7 @@
     const input = $('#portal-reply-input'); const body = input.value.trim(); if (!body || !client) return;
     const button = event.currentTarget.querySelector('[type="submit"]'); button.disabled = true;
     try {
-      await Portal.addMessage(client.id, 'client', client.contact.split(' ')[0], body);
+      await Portal.addMessage(client.id, 'client', client.contact?.split(' ')[0] || client.business, body);
       input.value = ''; $('#portal-reply-status').textContent = 'Delivered securely to LaunchPoint.';
       await refresh(); showToast('Reply delivered');
     } catch (error) { $('#portal-reply-status').textContent = error.message; }
@@ -98,7 +98,7 @@
     event.currentTarget.disabled = true;
     try {
       await Portal.respondToApproval(approvalId, 'approved');
-      await Portal.addMessage(client.id, 'client', client.contact.split(' ')[0], `Approved: ${event.currentTarget.textContent.replace(/^Approve\s+/, '')}`);
+      await Portal.addMessage(client.id, 'client', client.contact?.split(' ')[0] || client.business, `Approved: ${event.currentTarget.textContent.replace(/^Approve\s+/, '')}`);
       await refresh(); showToast('Approval sent to LaunchPoint');
     } catch (error) { showToast(error.message); event.currentTarget.disabled = false; }
   });

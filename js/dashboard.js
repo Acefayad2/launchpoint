@@ -64,10 +64,10 @@
   }
 
   function renderMetrics() {
-    const active = clients.filter((client) => client.status !== 'complete').length;
+    const active = clients.filter((client) => client.status === 'active').length;
     const unread = clients.reduce((total, client) => total + client.unread, 0);
     $('#active-client-count').textContent = active;
-    $('#open-project-count').textContent = clients.filter((client) => client.progress < 100).length;
+    $('#open-project-count').textContent = clients.filter((client) => client.status !== 'complete').length;
     $('#unread-message-count').textContent = unread;
     $('#approval-count').textContent = clients.reduce((total, client) => total + client.approvals.filter((approval) => approval.status === 'requested').length, 0);
     $('#nav-client-count').textContent = clients.length;
@@ -75,7 +75,7 @@
   }
 
   function renderAttention() {
-    const priority = [...clients].sort((a, b) => b.unread - a.unread).slice(0, 4);
+    const priority = clients.filter((client) => client.status !== 'untracked').sort((a, b) => b.unread - a.unread).slice(0, 4);
     $('#attention-list').innerHTML = priority.length ? priority.map((client, index) => `
       <button class="attention-row" type="button" data-open-client="${client.id}">
         <span class="attention-number">${String(index + 1).padStart(2, '0')}</span>
@@ -100,7 +100,7 @@
     const visible = filteredClients('#client-search');
     $('#client-table-body').innerHTML = visible.map((client) => `
       <tr data-open-client="${client.id}">
-        <td><span class="table-client"><span class="client-mark">${Portal.initials(client.business)}</span><span><strong>${escapeHtml(client.business)}</strong><small>${escapeHtml(client.contact)}</small></span></span></td>
+        <td><span class="table-client"><span class="client-mark">${Portal.initials(client.business)}</span><span><strong>${escapeHtml(client.business)}</strong><small>${escapeHtml(client.contact || 'Contact not added')}</small></span></span></td>
         <td>${escapeHtml(client.project)}</td>
         <td><span class="status-chip status-${client.status}">${client.status}</span></td>
         <td>${escapeHtml(client.nextStep)}</td>
@@ -137,14 +137,20 @@
     $('#conversation-client-name').textContent = client.business;
     $('#conversation-project-name').textContent = client.project;
     $('#composer-client-name').textContent = client.business;
+    const canMessage = Boolean(client.email);
+    $('#message-input').disabled = !canMessage;
+    $('#message-form [type="submit"]').disabled = !canMessage;
+    $('#message-status').textContent = canMessage ? '' : 'Add a client email before using portal messages.';
+    $('#copy-portal-link').disabled = !canMessage;
+    $('#open-client-portal').disabled = !canMessage;
     $('#message-history').innerHTML = client.messages.map((message) => `
       <article class="message-bubble message-${message.sender}"><div><strong>${escapeHtml(message.sender === 'admin' ? 'You' : message.name)}</strong><time>${Portal.formatTime(message.createdAt)}</time></div><p>${escapeHtml(message.body)}</p></article>`
     ).join('') || '<p class="conversation-empty">No messages yet. Send a short welcome note to begin.</p>';
     $('#message-history').scrollTop = $('#message-history').scrollHeight;
     $('#client-context').innerHTML = `
       <p class="section-kicker">Client context</p><h3>${escapeHtml(client.business)}</h3>
-      <dl><div><dt>Contact</dt><dd>${escapeHtml(client.contact)}</dd></div><div><dt>Email</dt><dd>${escapeHtml(client.email)}</dd></div><div><dt>Project</dt><dd>${escapeHtml(client.project)}</dd></div><div><dt>Value</dt><dd>${escapeHtml(client.value)}</dd></div><div><dt>Target</dt><dd>${escapeHtml(client.targetDate)}</dd></div></dl>
-      <div class="context-progress"><span><b>Progress</b><em>${client.progress}%</em></span><div><i style="width:${client.progress}%"></i></div></div>
+      <dl><div><dt>Contact</dt><dd>${escapeHtml(client.contact || 'Not added')}</dd></div><div><dt>Email</dt><dd>${escapeHtml(client.email || 'Not added')}</dd></div><div><dt>Project</dt><dd>${escapeHtml(client.project)}</dd></div><div><dt>Value</dt><dd>${escapeHtml(client.value)}</dd></div><div><dt>Target</dt><dd>${escapeHtml(client.targetDate)}</dd></div></dl>
+      <div class="context-progress"><span><b>Progress</b><em>${client.progress == null ? 'Not tracked' : `${client.progress}%`}</em></span><div><i style="width:${client.progress ?? 0}%"></i></div></div>
       <div class="context-next"><span>Next step</span><strong>${escapeHtml(client.nextStep)}</strong><p>${escapeHtml(client.nextCopy)}</p></div>`;
   }
 
@@ -320,7 +326,7 @@
   $('#message-form').addEventListener('submit', async (event) => {
     event.preventDefault();
     const client = activeClient(); const input = $('#message-input'); const body = input.value.trim();
-    if (!client || !body) return;
+    if (!client || !client.email || !body) return;
     const button = event.currentTarget.querySelector('[type="submit"]'); button.disabled = true;
     try {
       await Portal.addMessage(client.id, 'admin', 'LaunchPoint', body);

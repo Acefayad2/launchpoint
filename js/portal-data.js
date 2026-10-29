@@ -16,8 +16,8 @@
     const milestones = [...(row.milestones || [])].sort((a, b) => a.position - b.position);
     const approvals = [...(row.approvals || [])].sort((a, b) => new Date(b.requested_at) - new Date(a.requested_at));
     return {
-      id: row.id, slug: row.slug, business: row.business, contact: row.contact_name,
-      email: row.contact_email, project: row.project, status: row.status, progress: row.progress,
+      id: row.id, slug: row.slug, business: row.business, contact: row.contact_name || '',
+      email: row.contact_email || '', project: row.project, status: row.status, progress: row.progress,
       nextStep: row.next_step, nextCopy: row.next_copy, targetDate: row.target_date,
       value: row.project_value, summary: row.summary, lastContact: formatTime(row.last_contact_at),
       lastContactAt: row.last_contact_at,
