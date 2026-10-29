@@ -170,6 +170,20 @@ test('self invitation binds current account UUID; new invite never sets a role o
   assert.doesNotMatch(ui.get('#setup-invite-status').textContent, /opaque|token/);
 });
 
+test('invitation success survives browser clearing event.currentTarget after dispatch', async () => {
+  const ui = await harness();
+  ui.get('#invite-name').value = 'Administrator';
+  ui.get('#invite-phone').value = '(202) 555-0124';
+  const form = ui.get('#setup-invite-form');
+  const event = { preventDefault() {}, currentTarget: form };
+  const completed = form.events.submit(event);
+  event.currentTarget = null;
+  await completed;
+  assert.equal(form.resetCalled, true);
+  assert.equal(ui.calls.filter(call => call.action === 'invite-create').length, 1);
+  assert.match(ui.get('#setup-invite-status').textContent, /Quo accepted/);
+});
+
 test('account update requires fresh server verification and preserves direct auth identity', async () => {
   const ui = await harness();
   ui.get('#security-email').value = ' NEW@example.com '; ui.get('#security-password').value = 'private-password-123'; ui.get('#security-password-confirm').value = 'private-password-123';
