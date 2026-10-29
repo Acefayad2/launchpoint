@@ -52,36 +52,23 @@ h3 { font-family: 'Manrope', sans-serif; letter-spacing: -.035em; }
   min-height: 100dvh;
   display: grid;
   place-items: center;
-  padding: 160px 24px 90px;
+  padding: 80px 24px 0;
   text-align: center;
   isolation: isolate;
-  background: radial-gradient(ellipse at 50% 38%, #71201852, transparent 32%), radial-gradient(ellipse at 50% 45%, #1d1316, transparent 67%), #07080a;
+  background: #000;
 }
-.hero::before { inset: 0; width: auto; height: auto; background: linear-gradient(90deg, #08090cbf, transparent 18%, transparent 82%, #08090cbf); }
-.hero::after { content: ''; position: absolute; inset: 0; z-index: -1; background: repeating-linear-gradient(0deg, transparent 0 4px, #ffffff05 5px 6px); mask-image: radial-gradient(ellipse, #000 12%, transparent 72%); pointer-events: none; }
-.hero-content { position: relative; z-index: 2; max-width: 900px; }
-.hero-tag { color: #ff9b8d; font: 700 .7rem/1.2 'Manrope', sans-serif; letter-spacing: .23em; text-transform: uppercase; margin-bottom: 26px; }
-.hero-tag::before, .hero-tag::after { content: ''; display: inline-block; width: 26px; height: 1px; margin: 0 12px 4px; background: #e75d50; }
-.hero-h1 { max-width: 16ch; margin: 0 auto 25px; font-size: clamp(2.9rem, 5.25vw, 5.5rem); line-height: 1.12; letter-spacing: -.062em; text-transform: uppercase; text-shadow: 0 6px 40px #000; }
-.hero-accent { color: #ff6b5c; }
-.hero-sub { max-width: 58ch; margin: 0 auto 32px; color: #bbb9bd; font-size: clamp(.95rem, 1.4vw, 1.12rem); line-height: 1.75; }
-.hero-actions { justify-content: center; margin-bottom: 58px; }
-.hero-actions .btn-ghost { color: #e0dddf; border-bottom: 1px solid #f05a4a66; padding-inline: 9px; }
-.hero-proof { justify-content: center; gap: 38px; }
-.hero-proof-item strong { font-family: 'Manrope', sans-serif; font-size: 1.35rem; }
-.hero-proof-item span { color: #8f9098; font-size: .71rem; text-transform: uppercase; letter-spacing: .07em; }
-.hero-proof-sep { background: #f05a4a3d; }
-.hero-orbit { position: absolute; z-index: 0; top: 45%; left: 50%; width: min(78vw, 800px); aspect-ratio: 1; transform: translate(-50%, -50%); opacity: .55; pointer-events: none; }
-.orbit-ring { position: absolute; inset: 13%; border: 1px solid #f05a4a48; border-radius: 50%; box-shadow: inset 0 0 32px #f05a4a16, 0 0 25px #f05a4a15; }
-.orbit-ring-one { inset: 28%; border-style: dashed; border-color: #ff9e8b47; animation: orbit-spin 42s linear infinite; }
-.orbit-ring-two { inset: 7%; border-color: #ffffff18; animation: orbit-spin 62s linear infinite reverse; }
-.orbit-ring-three { inset: 39%; border-width: 8px; border-color: #f05a4a15; filter: blur(10px); }
-.orbit-core { position: absolute; inset: 42%; display: grid; place-items: center; border-radius: 50%; background: #df473c35; box-shadow: 0 0 90px 60px #f05a4a34; }
-.orbit-core img { width: 100%; opacity: .55; filter: saturate(.7); }
-.orbit-coordinate { position: absolute; color: #f5b2a5; font: 600 .56rem/1.2 'Manrope', sans-serif; letter-spacing: .22em; }
-.orbit-coordinate-top { top: 12%; right: 13%; }
-.orbit-coordinate-bottom { bottom: 12%; left: 12%; }
-@keyframes orbit-spin { to { transform: rotate(360deg); } }
+.hero::before, .hero::after { display: none; }
+.hero-still, .hero-webgl, .hero-vignette { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.hero-still { z-index: 0; width: min(76vmin, 630px); height: auto; top: 50%; left: 50%; transform: translate(-50%, -50%); object-fit: contain; }
+.hero-webgl { z-index: 1; opacity: 0; transition: opacity .7s ease; }
+.hero-webgl.is-ready { opacity: 1; }
+.hero-vignette { z-index: 2; background: linear-gradient(#000 0%, transparent 17%, transparent 81%, #000 100%), linear-gradient(90deg, #000 0%, transparent 17%, transparent 83%, #000 100%), #0004; }
+.hero-content { position: relative; z-index: 3; max-width: 900px; margin-top: -3vh; pointer-events: none; }
+.hero-h1 { display: flex; justify-content: center; gap: .38em; max-width: none; margin: 0; color: #fff; font-size: clamp(2.75rem, 6vw, 6.4rem); line-height: 1.15; font-weight: 800; letter-spacing: -.055em; text-transform: uppercase; text-shadow: 0 4px 35px #000, 0 0 40px #ff433350; }
+.hero-h1 span { opacity: 0; animation: hero-word-in .8s cubic-bezier(.16, 1, .3, 1) forwards; }
+.hero-h1 span:nth-child(2) { animation-delay: .55s; }
+.hero-sub { max-width: none; margin: 12px 0 0; color: #fff; font-family: var(--font-display); font-size: clamp(.82rem, 1.8vw, 1.4rem); font-weight: 600; line-height: 1.5; text-shadow: 0 4px 20px #000; opacity: 0; animation: hero-word-in .8s 1.25s forwards; }
+@keyframes hero-word-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 
 .services, .proof, .cta-band { background: #090a0d; }
 .process, .pricing, .contact { background: #101115; }
@@ -122,29 +109,23 @@ h3 { font-family: 'Manrope', sans-serif; letter-spacing: -.035em; }
 .footer-logo { height: 82px; }
 
 @media (max-width: 900px) {
-  .hero-orbit { width: 100vw; }
   .services-row { grid-template-columns: 1fr; }
   .service-card { min-height: auto; }
 }
 @media (max-width: 768px) {
   .nav-inner { height: 72px; }
   .nav-logo-img { height: 54px; }
-  .hero { min-height: 100dvh; padding-top: 138px; }
-  .hero-h1 { font-size: clamp(2.25rem, 9vw, 3.9rem); }
-  .hero-proof { flex-direction: row; gap: 12px; }
-  .hero-proof-item { flex: 1; }
-  .hero-proof-item strong { font-size: 1.1rem; }
-  .hero-proof-item span { font-size: .57rem; }
-  .hero-orbit { top: 36%; opacity: .38; }
-  .orbit-coordinate { display: none; }
+  .hero { padding-top: 72px; }
+  .hero-h1 { font-size: clamp(2.4rem, 8vw, 4.5rem); }
+  .hero-still { width: min(94vw, 560px); }
   .service-feature-visual { transform: none; }
 }
 @media (max-width: 480px) {
-  .hero-tag::before, .hero-tag::after { width: 10px; margin-inline: 5px; }
-  .hero-h1 { font-size: 2.17rem; }
-  .hero-proof { flex-wrap: wrap; }
+  .hero-h1 { gap: .2em; font-size: clamp(1.85rem, 8.2vw, 2.8rem); }
+  .hero-sub { font-size: .8rem; }
   .contact-form { padding: 22px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .orbit-ring { animation: none; }
+  .hero-h1 span, .hero-sub { animation: none; opacity: 1; }
+  .hero-webgl { display: none; }
 }
