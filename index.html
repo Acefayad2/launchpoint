@@ -3,8 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LaunchPoint | Done-For-You Digital Growth for Local Business</title>
-  <meta name="description" content="LaunchPoint builds websites and digital systems for ambitious businesses. From first impression to follow-up, we bring the pieces together.">
+  <title>LaunchPoint | Website Design, Local SEO &amp; Business Systems</title>
+  <meta name="description" content="LaunchPoint builds websites, local SEO campaigns, and connected client systems for small businesses. Explore design, Google Ads, photography, and automation.">
+  <link rel="canonical" href="https://mylaunch.dev/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="LaunchPoint">
+  <meta property="og:title" content="LaunchPoint | Website Design, Local SEO &amp; Business Systems">
+  <meta property="og:description" content="Websites, local search, creative, and client systems. One team to build your next chapter.">
+  <meta property="og:url" content="https://mylaunch.dev/">
+  <meta property="og:image" content="https://mylaunch.dev/assets/launchpoint-logo-v2.png">
+  <meta property="og:image:alt" content="LaunchPoint rocket logo">
+  <meta name="twitter:card" content="summary">
   <meta name="theme-color" content="#090a0d">
   <script>
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !window.location.hash) {
@@ -20,7 +29,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/neural-theme.css?v=20261029-12">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/homepage-v2.css?v=20261029-1">
+  <link rel="stylesheet" href="css/homepage-v2.css?v=20261029-2">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -70,10 +79,17 @@
   </section>
 
   <div class="home-v2">
-    <div class="v2-strip">
+    <div class="v2-strip" id="service-orbit" role="region" aria-label="LaunchPoint services">
       <div class="v2-wrap v2-strip-inner">
         <p>Built around your business</p>
-        <div><span>Websites</span><span>Search</span><span>Reviews</span><span>Creative</span><span>Client systems</span></div>
+        <div class="v2-orbit-window">
+          <div class="v2-orbit-track" id="service-orbit-track">
+            <ul class="v2-orbit-list" role="list">
+              <li>Website design</li><li>Local SEO</li><li>Google Ads</li><li>Review cards</li><li>Social media</li><li>Photography</li><li>Client dashboards</li>
+            </ul>
+          </div>
+        </div>
+        <button class="v2-orbit-toggle" type="button" aria-controls="service-orbit-track" aria-label="Pause service animation" hidden>Pause <span aria-hidden="true">Ⅱ</span></button>
       </div>
     </div>
 
@@ -258,12 +274,13 @@
       </div>
       <div class="footer-bottom">
         <span>&copy; 2026 LaunchPoint Technologies, Inc.</span>
+        <a class="footer-studio" href="/dashboard.html" rel="nofollow">Studio / Dashboard <span aria-hidden="true">↗</span></a>
       </div>
     </div>
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/homepage-v2.js" defer></script>
+  <script src="js/homepage-v2.js?v=20261029-2" defer></script>
   <script src="js/hero-webgl.js?v=20261029-1" defer></script>
   <script src="js/launch-intro.js?v=20261029-6" defer></script>
 </body>

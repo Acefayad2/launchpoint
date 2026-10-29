@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { runInNewContext } from 'node:vm';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const tags = html.match(/<[a-z][^>]*>/gi) || [];
@@ -137,4 +138,94 @@ test('homepage accent text and quote-band copy retain accessible contrast agains
     const contrast = 1.05 / (luminance + .05);
     assert.ok(contrast >= 4.5, `${label} ${hex} needs 4.5:1 contrast with white; measured ${contrast.toFixed(3)}:1`);
   }
+});
+
+test('homepage has one production canonical and real services in static HTML', () => {
+  const canonicals = tags.filter(tag => tag.startsWith('<link') && attributes(tag).rel === 'canonical');
+  assert.equal(canonicals.length, 1, 'only one canonical URL is advertised');
+  assert.equal(attributes(canonicals[0]).href, 'https://mylaunch.dev/');
+  const list = html.match(/<ul\b[^>]*class="v2-orbit-list"[^>]*>([\s\S]*?)<\/ul>/)?.[1];
+  assert.ok(list, 'service text is present before JavaScript runs');
+  assert.deepEqual([...list.matchAll(/<li>([^<]+)<\/li>/g)].map(match => match[1]), [
+    'Website design', 'Local SEO', 'Google Ads', 'Review cards', 'Social media', 'Photography', 'Client dashboards',
+  ]);
+  assert.equal(byId('service-orbit').role, 'region');
+  assert.equal(byId('service-orbit')['aria-label'], 'LaunchPoint services');
+});
+
+test('footer exposes the existing Studio sign-in without promoting it to search engines', () => {
+  const footer = html.match(/<footer\b[\s\S]*?<\/footer>/)?.[0];
+  assert.ok(footer);
+  const links = (footer.match(/<a\b[^>]*>/g) || []).map(attributes)
+    .filter(link => link.class?.split(/\s+/).includes('footer-studio'));
+  assert.equal(links.length, 1);
+  assert.equal(links[0].href, '/dashboard.html');
+  assert.ok(links[0].rel.split(/\s+/).includes('nofollow'));
+  assert.match(footer, />Studio \/ Dashboard\s*<span\b[^>]*aria-hidden="true"/);
+});
+
+test('service animation has an accessible working pause control and hides its duplicate', async () => {
+  const controlTag = tags.find(tag => attributes(tag).class?.split(/\s+/).includes('v2-orbit-toggle'));
+  const control = attributes(controlTag);
+  assert.ok(controlTag.startsWith('<button'));
+  assert.equal(control.type, 'button');
+  assert.equal(control['aria-controls'], 'service-orbit-track');
+  assert.equal(control['aria-label'], 'Pause service animation');
+  assert.ok(Object.hasOwn(control, 'hidden'), 'no inactive pause control is shown when JavaScript is unavailable');
+  byId(control['aria-controls']);
+
+  const classes = new Set();
+  const listeners = {};
+  const duplicateAttributes = {};
+  const duplicate = { setAttribute: (name, value) => { duplicateAttributes[name] = value; } };
+  const icon = { textContent: 'Ⅱ' };
+  const button = {
+    hidden: true,
+    firstChild: { textContent: 'Pause ' },
+    setAttribute: (name, value) => { control[name] = value; },
+    querySelector: () => icon,
+    addEventListener: (name, callback) => { listeners[name] = callback; },
+  };
+  const strip = {
+    querySelector: () => button,
+    classList: {
+      add: name => classes.add(name),
+      toggle(name, force = !classes.has(name)) {
+        force ? classes.add(name) : classes.delete(name);
+        return force;
+      },
+    },
+  };
+  const track = {
+    querySelector: () => ({ cloneNode: () => duplicate }),
+    append: node => assert.equal(node, duplicate),
+  };
+  const document = {
+    hidden: false,
+    querySelector: () => null,
+    getElementById: id => ({ 'service-orbit': strip, 'service-orbit-track': track })[id],
+    addEventListener: () => {},
+  };
+  const script = await readFile(new URL('../js/homepage-v2.js', import.meta.url), 'utf8');
+  runInNewContext(script, { document, window: {} });
+  assert.equal(duplicateAttributes['aria-hidden'], 'true');
+  assert.equal(button.hidden, false);
+  listeners.click();
+  assert.ok(classes.has('is-paused'));
+  assert.equal(control['aria-label'], 'Resume service animation');
+  assert.equal(button.firstChild.textContent, 'Play ');
+  listeners.click();
+  assert.ok(!classes.has('is-paused'));
+  assert.equal(control['aria-label'], 'Pause service animation');
+  assert.equal(button.firstChild.textContent, 'Pause ');
+});
+
+test('service animation falls back to a readable static list for reduced motion', async () => {
+  const css = await readFile(new URL('../css/homepage-v2.css', import.meta.url), 'utf8');
+  const reduced = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'));
+  assert.match(reduced, /\.v2-orbit-track\s*\{[^}]*animation:\s*none;[^}]*transform:\s*none;/);
+  assert.match(reduced, /\.v2-orbit-list\s*\{[^}]*flex-wrap:\s*wrap;/);
+  assert.match(reduced, /\.v2-orbit-window\s*\{[^}]*overflow:\s*visible;[^}]*mask-image:\s*none;/);
+  assert.match(reduced, /\.v2-orbit-list\[aria-hidden="true"\],\s*\.home-v2 \.v2-orbit-toggle\s*\{\s*display:\s*none;/);
+  assert.match(css, /\.v2-strip:is\(\.is-paused,\s*\.is-offscreen,\s*\.is-page-hidden\) \.v2-orbit-track\s*\{\s*animation-play-state:\s*paused;/);
 });
