@@ -36,7 +36,8 @@ const frozenFiles = {
 test('homepage preserves the production hero and rocket intro visuals exactly', async () => {
   const blocks = [
     [/\<section class="hero hero-template"[\s\S]*?<\/section>/, '20cb4260beae6898a4f53737891a15a9dd5d342d8671f4fd00a41158f0251720', 'hero markup'],
-    [/\<div class="launch-intro" id="launch-intro">[\s\S]*?<\/button>\s*<\/div>/, '592cb08cba0303be22e0782f943128a5870dc178498f0f4d7e3ec3a5567203b8', 'intro markup'],
+    // Re-approved 2026-10-29: the Skip intro button was removed (Escape, scroll, or focus still end the intro).
+    [/\<div class="launch-intro" id="launch-intro">[\s\S]*?<\/div>\s*<\/div>/, '334ed9dae0aec048e3a0bb93e77bea79a933c12cc3b822dcd5667fe7706b6570', 'intro markup'],
   ];
   for (const [pattern, expected, label] of blocks) {
     const block = html.match(pattern)?.[0];
@@ -180,7 +181,7 @@ test('navigation and in-page links keep unique destinations and accessible mobil
   assert.equal(toggle['aria-expanded'], 'false');
   assert.ok(toggle['aria-label']);
   assert.ok(byId('navMobile').class.split(/\s+/).includes('nav-mobile'));
-  assert.ok(tags.some(tag => attributes(tag).class?.split(/\s+/).includes('nav-logo')), 'intro skip can restore focus to the logo');
+  assert.ok(tags.some(tag => attributes(tag).class?.split(/\s+/).includes('nav-logo')), 'intro can restore focus to the logo');
   for (const tag of tags.filter(tag => tag.startsWith('<a'))) {
     const { href = '' } = attributes(tag);
     if (href.startsWith('#') && href.length > 1) byId(href.slice(1));
