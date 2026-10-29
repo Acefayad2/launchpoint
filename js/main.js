@@ -1,10 +1,5 @@
 /* LaunchPoint — Main JS */
 
-const nav = document.getElementById('nav');
-window.addEventListener('scroll', () => {
-  nav.classList.toggle('scrolled', window.scrollY > 20);
-}, { passive: true });
-
 const navToggle = document.getElementById('navToggle');
 const navMobile = document.getElementById('navMobile');
 navToggle.addEventListener('click', () => {
@@ -47,6 +42,10 @@ document.querySelectorAll('.proof-number').forEach(el => counterObs.observe(el))
 function animateCounter(el) {
   const target = parseFloat(el.dataset.target);
   const isDecimal = String(target).includes('.');
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.textContent = isDecimal ? target.toFixed(1) : target.toLocaleString();
+    return;
+  }
   const duration = 1600;
   const start = performance.now();
 
@@ -66,12 +65,16 @@ function animateCounter(el) {
 const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyvhxQ-PIVGv-pa2CE_JNlg2-Gezf7lPR9PZp0IXbGzzCYjOhl6kkfX-fWIH21ie1iy/exec';
 
 const form = document.getElementById('contactForm');
+const formStatus = document.getElementById('formStatus');
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = form.querySelector('button[type="submit"]');
   const origText = btn.textContent;
-  btn.textContent = 'Sending...';
+  const fd = new FormData(form);
+  btn.textContent = 'Sending request...';
   btn.disabled = true;
+  formStatus.textContent = 'Sending your request...';
+  formStatus.dataset.state = 'pending';
 
   const data = {
     firstName: document.getElementById('firstName').value,
@@ -80,41 +83,37 @@ form.addEventListener('submit', async (e) => {
     business: document.getElementById('business').value,
     industry: document.getElementById('industry').value,
     challenge: document.getElementById('challenge').value,
+    services: fd.getAll('services'),
     timestamp: new Date().toISOString(),
   };
 
-  if (GOOGLE_SHEET_URL) {
-    try {
-      await fetch(GOOGLE_SHEET_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-    } catch (err) {
-      console.warn('Sheets error:', err);
-    }
-  }
-
   try {
-    const fd = new FormData(form);
-    await fetch('/', {
+    const response = await fetch('/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams(fd).toString(),
     });
-  } catch (err) {
-    console.warn('Netlify error:', err);
-  }
+    if (!response.ok) throw new Error(`Submission failed: ${response.status}`);
 
-  btn.textContent = 'Sent! We\'ll be in touch.';
-  btn.style.background = 'oklch(0.55 0.15 145)';
-  form.reset();
-  setTimeout(() => {
+    if (GOOGLE_SHEET_URL) {
+      fetch(GOOGLE_SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }).catch(() => {});
+    }
+
+    formStatus.textContent = 'Request submitted. We will be in touch soon.';
+    formStatus.dataset.state = 'success';
+    form.reset();
+  } catch (err) {
+    formStatus.textContent = 'We could not send your request. Please try again.';
+    formStatus.dataset.state = 'error';
+  } finally {
     btn.textContent = origText;
-    btn.style.background = '';
     btn.disabled = false;
-  }, 4000);
+  }
 });
 
 // Smooth scroll with nav offset
