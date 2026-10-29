@@ -250,3 +250,31 @@ body.dashboard-page .context-next { border: 1px solid var(--line-strong); border
   body.dashboard-page .finance-feature { padding: 20px; }
   body.dashboard-page .finance-total { font-size: 2.5rem; }
 }
+
+/* ---------- Project workspace (client projects, edits, files) ---------- */
+body.dashboard-page :is(.project-overview-card, .project-glass-panel) { border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--paper); background-image: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+body.dashboard-page .project-overview-card { background: var(--raised); }
+body.dashboard-page :is(.project-access-badge, .project-draft-state, .project-request-top time, .project-step-number) { color: var(--muted); font: 600 var(--t-meta)/1.2 var(--body); letter-spacing: 0; text-transform: none; }
+body.dashboard-page .project-access-badge { padding: 5px 9px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--raised); }
+body.dashboard-page :is(.project-editor label, .project-access-panel label, .project-upload-form > label) { color: var(--ink); font: 600 var(--t-small)/1.3 var(--body); letter-spacing: 0; text-transform: none; }
+body.dashboard-page :is(.project-editor :is(input, select, textarea), .project-access-panel input, .project-request-item select) { min-height: 40px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--canvas); color: var(--ink); font: 500 var(--t-body)/1.4 var(--body); }
+body.dashboard-page :is(.project-editor :is(input, select, textarea), .project-access-panel input, .project-request-item select):focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgb(255 122 77 / 18%); }
+body.dashboard-page :is(.project-editor small, .project-milestone-heading p, .project-support-settings > p, .project-empty-step, .project-progress-summary p, .project-subscription-status > span, .project-upload-form > p:not(.form-status), .client-invite-option small) { color: var(--muted); font-size: var(--t-small); }
+body.dashboard-page .project-access-panel > .project-panel-note,
+body.dashboard-page :is(.project-panel-note, .project-access-panel > p:not(.section-kicker, .form-status), .project-file-empty, .project-empty p, .project-workspace .form-status, .project-inline-status) { color: var(--muted) !important; font-size: var(--t-small) !important; }
+body.dashboard-page :is(.project-request-item > a, .project-request-attachments button) { color: var(--accent); font: 600 var(--t-small)/1.4 var(--body); }
+body.dashboard-page .project-request-item { border-color: var(--line); }
+body.dashboard-page .project-request-item p { color: var(--muted); font-size: var(--t-body); line-height: 1.55; }
+body.dashboard-page .project-request-item h4 { color: var(--ink); font: 700 var(--t-h3)/1.3 var(--body); }
+body.dashboard-page :is(.project-subscription-status .secondary-action, .project-workspace-top .secondary-action) { font: 600 var(--t-small)/1 var(--body); }
+body.dashboard-page .client-invite-option { font-size: var(--t-body); }
+
+body.dashboard-page .project-upload-form input[type="file"] { width: 100%; padding: 6px; border: 1px dashed var(--line-strong); border-radius: 10px; background: var(--canvas); color: var(--muted); font: 500 var(--t-small)/1.4 var(--body); cursor: pointer; }
+body.dashboard-page .project-upload-form input[type="file"]:hover { border-color: #4a4f57; }
+body.dashboard-page .project-upload-form input[type="file"]::file-selector-button { margin-right: 12px; padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: 7px; background: var(--raised); color: var(--ink); font: 600 var(--t-small)/1 var(--body); cursor: pointer; }
+
+body.dashboard-page .project-file-item { border-radius: 10px; transition: background var(--dur) ease; }
+body.dashboard-page .project-file-item:hover { background: var(--hover); }
+body.dashboard-page .project-file-type { border-radius: 6px; background: var(--raised); color: var(--muted); font: 700 .625rem/1 var(--body); letter-spacing: .02em; }
+body.dashboard-page .project-file-item strong { color: var(--ink); font: 600 var(--t-body)/1.4 var(--body); }
+body.dashboard-page .project-file-item small { color: var(--faint); font: 500 var(--t-meta)/1.4 var(--body); }

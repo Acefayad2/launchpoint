@@ -35,7 +35,8 @@ const frozenFiles = {
 
 test('homepage preserves the production hero and rocket intro visuals exactly', async () => {
   const blocks = [
-    [/\<section class="hero hero-template"[\s\S]*?<\/section>/, '20cb4260beae6898a4f53737891a15a9dd5d342d8671f4fd00a41158f0251720', 'hero markup'],
+    // Re-approved 2026-10-29: slogan under the headline ("Everything your business needs online. Nothing you have to manage.").
+    [/\<section class="hero hero-template"[\s\S]*?<\/section>/, 'b2290c33a221e52a42756afc8b173a0cf87738e53ef5f39e7438e0007ea182e9', 'hero markup'],
     // Re-approved 2026-10-29: the Skip intro button was removed (Escape, scroll, or focus still end the intro).
     [/\<div class="launch-intro" id="launch-intro">[\s\S]*?<\/div>\s*<\/div>/, '334ed9dae0aec048e3a0bb93e77bea79a933c12cc3b822dcd5667fe7706b6570', 'intro markup'],
   ];

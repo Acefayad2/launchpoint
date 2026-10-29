@@ -119,6 +119,17 @@
 }
 
 .hero-template { cursor: crosshair; }
+.hero-slogan {
+  max-width: 34ch;
+  margin: clamp(14px, 2.2vh, 22px) auto 0;
+  color: #d9dce0;
+  font: 500 clamp(1.02rem, 1.55vw, 1.32rem)/1.45 'Manrope', sans-serif;
+  letter-spacing: -.005em;
+  text-align: center;
+  text-wrap: balance;
+  text-shadow: 0 2px 18px #000, 0 0 2px #000;
+}
+.hero-slogan span { display: block; color: #ff9a75; font-weight: 700; }
 .hero-hint {
   position: absolute;
   left: 50%;
