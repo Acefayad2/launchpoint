@@ -5,17 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LaunchPoint | Done-For-You Digital Growth for Local Business</title>
   <meta name="description" content="LaunchPoint builds your entire digital presence: website, SEO, ads, social media, reviews. Focus on running your business while we bring in the customers. Results in 30 days.">
+  <meta name="theme-color" content="#090a0d">
   <link rel="icon" type="image/png" href="assets/launchpoint-mark-v2.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Red+Hat+Display:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Orbitron:wght@500;600;700;800&family=Red+Hat+Display:wght@500;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/neural-theme.css?v=20261029-1">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
 
   <nav class="nav" id="nav">
     <div class="nav-inner">
-      <a href="#" class="nav-logo">
+      <a href="/" class="nav-logo">
         <img src="assets/launchpoint-logo-v2.png" alt="LaunchPoint" class="nav-logo-img">
       </a>
       <div class="nav-links" id="navLinks">
@@ -25,7 +28,7 @@
         <a href="#pricing">Pricing</a>
       </div>
       <a href="#contact" class="nav-cta">Book Free Audit</a>
-      <button class="nav-toggle" id="navToggle" aria-label="Menu">
+      <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-controls="navMobile" aria-expanded="false">
         <span></span><span></span>
       </button>
     </div>
@@ -38,7 +41,16 @@
     </div>
   </nav>
 
+  <main id="main-content">
   <section class="hero">
+    <div class="hero-orbit" aria-hidden="true">
+      <div class="orbit-core"><img src="assets/launchpoint-mark-v2.png" alt=""></div>
+      <span class="orbit-ring orbit-ring-one"></span>
+      <span class="orbit-ring orbit-ring-two"></span>
+      <span class="orbit-ring orbit-ring-three"></span>
+      <span class="orbit-coordinate orbit-coordinate-top">LP / 001</span>
+      <span class="orbit-coordinate orbit-coordinate-bottom">DIGITAL SYSTEMS · BUILT TO MOVE</span>
+    </div>
     <div class="hero-content">
       <p class="hero-tag">For local businesses ready to grow</p>
       <h1 class="hero-h1">Your customers are searching.<br><span class="hero-accent">They're finding your competitor.</span></h1>
@@ -327,6 +339,7 @@
       </div>
     </div>
   </section>
+  </main>
 
   <footer class="footer">
     <div class="container">

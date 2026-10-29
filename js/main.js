@@ -8,10 +8,11 @@ window.addEventListener('scroll', () => {
 const navToggle = document.getElementById('navToggle');
 const navMobile = document.getElementById('navMobile');
 navToggle.addEventListener('click', () => {
-  navMobile.classList.toggle('open');
+  const open = navMobile.classList.toggle('open');
+  navToggle.setAttribute('aria-expanded', String(open));
 });
 document.querySelectorAll('.nav-mobile a').forEach(link => {
-  link.addEventListener('click', () => navMobile.classList.remove('open'));
+  link.addEventListener('click', () => { navMobile.classList.remove('open'); navToggle.setAttribute('aria-expanded', 'false'); });
 });
 
 // Scroll reveal
@@ -127,6 +128,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     const offset = 80;
     const top = target.getBoundingClientRect().top + window.scrollY - offset;
     window.scrollTo({ top, behavior: 'smooth' });
-    if (navMobile.classList.contains('open')) navMobile.classList.remove('open');
+    if (navMobile.classList.contains('open')) { navMobile.classList.remove('open'); navToggle.setAttribute('aria-expanded', 'false'); }
   });
 });
