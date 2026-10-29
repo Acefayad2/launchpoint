@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/dashboard-glass.css?v=20261028-1">
   <link rel="stylesheet" href="css/dashboard-neural.css?v=20261029-4">
+  <link rel="stylesheet" href="css/studio.css?v=20261029-3">
 </head>
 <body class="dashboard-page" data-auth-state="loading">
   <a class="skip-link" href="#workspace">Skip to workspace</a>
@@ -75,6 +76,10 @@
           <strong id="gross-revenue" class="finance-total" aria-live="polite">—</strong>
           <p class="finance-scope" id="revenue-scope">Loading Stripe payment history…</p>
           <p class="finance-updated" id="revenue-updated"></p>
+          <figure class="revenue-chart" id="revenue-chart" hidden>
+            <figcaption><span id="revenue-chart-title">Recent invoices</span><span class="revenue-legend"><i class="is-paid"></i>Paid <i class="is-processing"></i>Processing <i class="is-open"></i>Open</span></figcaption>
+            <div class="revenue-bars" id="revenue-bars" role="img"></div>
+          </figure>
         </div>
         <div class="finance-metrics" aria-label="Invoice payment status">
           <article><span>Successful payments</span><strong id="paid-invoice-count">—</strong><small>Confirmed by Stripe</small></article>
@@ -305,6 +310,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/portal-data.js"></script>
-  <script src="js/dashboard.js?v=20261029-3"></script>
+  <script src="js/dashboard.js?v=20261029-5"></script>
 </body>
 </html>
