@@ -128,7 +128,7 @@
       }
       hideSections();
       if (!session) {
-        if (pendingEmail && invite) { showEmailPending(pendingEmail); return; }
+        if (pendingEmail && invite) { showEmailPending(pendingEmail); notice('Email confirmation is next. Your setup invitation is still saved in this tab.'); return; }
         $('#setup-auth').hidden = false;
         if (!modeInitialized) setMode(invite && !invite.existingAccount ? 'signup' : 'signin');
         notice(recoveryNotice || (inviteToken ? '' : 'Sign in to manage your account. New administrators need the private setup link sent to their phone.'));
