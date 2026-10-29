@@ -11,10 +11,23 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Orbitron:wght@500;600;700;800&family=Red+Hat+Display:wght@500;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/neural-theme.css?v=20261029-5">
+  <link rel="stylesheet" href="css/neural-theme.css?v=20261029-6">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <div class="launch-intro" id="launch-intro">
+    <div class="launch-intro-panel launch-intro-panel-left" aria-hidden="true"></div>
+    <div class="launch-intro-panel launch-intro-panel-right" aria-hidden="true"></div>
+    <div class="launch-intro-glow" aria-hidden="true"></div>
+    <div class="launch-intro-smoke launch-intro-smoke-back" aria-hidden="true"></div>
+    <div class="launch-intro-rocket" aria-hidden="true">
+      <img src="assets/launchpoint-mark-v2.png" alt="" width="240" height="240" fetchpriority="high">
+      <span class="launch-intro-flame"></span>
+    </div>
+    <div class="launch-intro-smoke launch-intro-smoke-front" aria-hidden="true"></div>
+    <button class="launch-intro-skip" id="launch-intro-skip" type="button">Skip intro</button>
+  </div>
 
   <nav class="nav" id="nav">
     <div class="nav-inner">
@@ -44,7 +57,6 @@
   <main id="main-content">
   <section class="hero hero-template" aria-labelledby="hero-title">
     <img class="hero-still" src="assets/template-hero-texture.png" alt="" aria-hidden="true">
-    <video class="hero-video" id="hero-video" muted playsinline preload="none" poster="assets/template-hero-texture.png" aria-hidden="true" data-src="assets/launchpoint-intro.mp4"></video>
     <div class="hero-vignette" aria-hidden="true"></div>
     <div class="hero-content">
       <h1 class="hero-h1" id="hero-title">LaunchPoint</h1>
@@ -293,6 +305,6 @@
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/hero-video.js?v=20261029-1" defer></script>
+  <script src="js/launch-intro.js?v=20261029-1" defer></script>
 </body>
 </html>
