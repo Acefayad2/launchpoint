@@ -14,6 +14,14 @@
   let invoiceHistoryError = '';
   let paymentRefreshTimer = null;
   let renderedProjectId = null;
+  let accessEpoch = 0;
+  let accessExpiresAt = 0;
+  let accessTimer = null;
+  let initializing = false;
+  let checkingAccess = false;
+  let challengeId = '';
+  let resendAt = 0;
+  let resendTimer = null;
   const projectDrafts = new Map();
   const savingProjects = new Set();
   const savingRequests = new Set();
@@ -44,8 +52,85 @@
   }
 
   function showAuth(message = '') {
+    clearWorkspace();
     document.body.dataset.authState = 'signed-out';
+    $('#auth-form').hidden = false;
+    $('#admin-verification').hidden = true;
     $('#auth-status').textContent = message;
+  }
+
+  function clearWorkspace() {
+    accessEpoch += 1;
+    accessExpiresAt = 0;
+    clearTimeout(accessTimer);
+    clearTimeout(initialize.realtimeTimer);
+    clearInterval(paymentRefreshTimer);
+    unsubscribeRealtime?.(); unsubscribeRealtime = null;
+    clients = []; invoiceHistory = []; recentPaid = []; activeClientId = null;
+    latestPaymentUrl = ''; renderedProjectId = null; invoiceHistoryError = '';
+    projectDrafts.clear(); projectNotices.clear();
+    for (const set of [savingProjects, savingRequests, invitingClients, uploadingClients, syncingSubscriptions]) set.clear();
+    for (const selector of ['#attention-list', '#client-table-body', '#thread-list', '#message-history', '#client-context', '#recent-paid-list', '#recent-payment-list', '#project-file-list', '#project-request-list', '#project-milestones', '#revenue-bars']) {
+      const element = $(selector); if (element) element.innerHTML = '';
+    }
+    for (const selector of ['#account-email', '#project-business-name', '#project-project-name', '#project-access-note', '#project-invite-status', '#payment-result-title', '#payment-result-url', '#conversation-client-name', '#conversation-project-name', '#composer-client-name']) {
+      const element = $(selector); if (element) element.textContent = '';
+    }
+    for (const selector of ['#project-form', '#payment-form', '#client-form', '#message-form', '#project-upload-form']) $(selector)?.reset();
+    $('#project-portal-url').value = '';
+    $('#payment-result').hidden = true;
+    $('#payment-result-url').removeAttribute('href'); $('#open-payment-link').removeAttribute('href');
+    $('#command-menu').hidden = true;
+    $('#client-dialog').close();
+    renderMetrics();
+    renderFinanceSummary(null, 'Verify your phone to load payment data.');
+  }
+
+  function showVerification(status = {}, message = '') {
+    clearWorkspace();
+    document.body.dataset.authState = 'verification';
+    $('#auth-form').hidden = true;
+    $('#admin-verification').hidden = false;
+    $('#admin-phone-label').textContent = status.phoneMasked
+      ? `We’ll text a one-use code to ${status.phoneMasked}. It expires after 5 minutes.`
+      : 'Finish the setup link sent to your phone, or contact another LaunchPoint administrator.';
+    $('#admin-send-code').hidden = !status.phoneMasked;
+    $('#admin-verification-status').textContent = message;
+  }
+
+  function setAccessExpiry(status) {
+    if (status.requiresVerification === false) { accessExpiresAt = 0; clearTimeout(accessTimer); return; }
+    accessExpiresAt = Date.parse(status.expiresAt);
+    if (!Number.isFinite(accessExpiresAt) || accessExpiresAt <= Date.now()) throw new Error('Phone verification has expired. Please verify again.');
+    clearTimeout(accessTimer);
+    accessTimer = setTimeout(() => showVerification(status, 'Your verification expired. Request a new code to continue.'), Math.min(accessExpiresAt - Date.now(), 2147483647));
+  }
+
+  async function checkAdminAccess() {
+    if (checkingAccess || document.body.dataset.authState !== 'ready') return;
+    checkingAccess = true;
+    const epoch = accessEpoch;
+    try {
+      const status = await Portal.adminAccess('status');
+      if (epoch !== accessEpoch) return;
+      if (!status.isAdmin || !status.verified) return showVerification(status, 'Please verify your phone to continue.');
+      setAccessExpiry(status);
+    } catch {
+      if (epoch !== accessEpoch) return;
+      showVerification({}, 'We could not verify this session. Sign in again or reopen your setup link.');
+    } finally { checkingAccess = false; }
+  }
+
+  function startResendTimer(seconds = 60) {
+    resendAt = Date.now() + Math.max(60, seconds) * 1000;
+    clearInterval(resendTimer);
+    const update = () => {
+      const left = Math.max(0, Math.ceil((resendAt - Date.now()) / 1000));
+      $('#admin-send-code').disabled = left > 0;
+      $('#admin-send-code').textContent = left ? `Resend in ${left}s` : 'Text me another code';
+      if (!left) clearInterval(resendTimer);
+    };
+    update(); resendTimer = setInterval(update, 1000);
   }
 
   function setView(view) {
@@ -274,7 +359,11 @@
   }
 
   async function refresh() {
-    clients = await Portal.loadClients();
+    if (document.body.dataset.authState !== 'ready') return;
+    const epoch = accessEpoch;
+    const loaded = await Portal.loadClients();
+    if (epoch !== accessEpoch || document.body.dataset.authState !== 'ready') return;
+    clients = loaded;
     if (!activeClientId || !clients.some((client) => client.id === activeClientId)) activeClientId = clients[0]?.id || null;
     renderMetrics(); renderAttention(); renderClients(); renderMessages();
     if (!$('#project-view').hidden) renderProject();
@@ -349,10 +438,13 @@
   }
 
   async function loadPaymentStatus() {
+    if (document.body.dataset.authState !== 'ready') return;
+    const epoch = accessEpoch;
     const refreshButton = $('#refresh-revenue');
     refreshButton.disabled = true;
     try {
       const status = await Portal.getPaymentIntegrationStatus();
+      if (epoch !== accessEpoch || document.body.dataset.authState !== 'ready') return;
       setIntegrationStatus('#stripe-status', 'Stripe', status.stripeConnected);
       setIntegrationStatus('#quo-status', 'Quo', status.quoConnected);
       invoiceHistoryError = status.historyError || '';
@@ -372,6 +464,7 @@
       renderRecentPaid();
       renderRevenueChart();
     } catch (error) {
+      if (epoch !== accessEpoch || document.body.dataset.authState !== 'ready') return;
       $('#revenue-chart').hidden = true;
       setIntegrationStatus('#stripe-status', 'Stripe', false);
       setIntegrationStatus('#quo-status', 'Quo', false);
@@ -385,6 +478,7 @@
   }
 
   function showPaymentResult(data, details) {
+    if (document.body.dataset.authState !== 'ready') return;
     latestPaymentUrl = data.url;
     $('#payment-result').hidden = false;
     $('#payment-result-kicker').textContent = data.sent ? 'Sent through Quo' : 'Ready to send';
@@ -402,15 +496,24 @@
   }
 
   async function initialize() {
+    if (initializing) return;
+    initializing = true;
     try {
       session = await Portal.getSession();
       if (!session) return showAuth();
+      const epoch = accessEpoch;
+      const access = await Portal.adminAccess('status');
+      if (epoch !== accessEpoch) return;
+      if (!access.isAdmin || !access.verified) return showVerification(access);
+      setAccessExpiry(access);
       if (await Portal.getRole() !== 'admin') {
         return showAuth('This email has client access only. Use the client portal link from LaunchPoint.');
       }
+      if (epoch !== accessEpoch) return;
       document.body.dataset.authState = 'ready';
       $('#account-email').textContent = session.user.email;
       await refresh();
+      if (epoch !== accessEpoch || document.body.dataset.authState !== 'ready') return;
       unsubscribeRealtime?.();
       unsubscribeRealtime = Portal.subscribe(null, () => {
         clearTimeout(initialize.realtimeTimer);
@@ -425,9 +528,8 @@
         if (!document.hidden && !$('#overview-view').hidden) loadPaymentStatus();
       }, 60_000);
     } catch (error) {
-      console.error(error);
       showAuth('The workspace could not load. Please try signing in again.');
-    }
+    } finally { initializing = false; }
   }
 
   $('#auth-form').addEventListener('submit', async (event) => {
@@ -440,7 +542,7 @@
       await Portal.signInWithPassword(email, password);
       await initialize();
     } catch (error) { $('#auth-status').textContent = error.message; }
-    finally { button.disabled = false; }
+    finally { $('#auth-password').value = ''; button.disabled = false; }
   });
 
   $('#magic-link-button').addEventListener('click', async (event) => {
@@ -454,7 +556,45 @@
     finally { event.currentTarget.disabled = false; }
   });
 
-  $('#sign-out-button').addEventListener('click', async () => { await Portal.signOut(); location.reload(); });
+  async function adminSignOut() {
+    showAuth('Signing out…');
+    challengeId = ''; clearInterval(resendTimer);
+    $('#admin-code').value = ''; $('#admin-code-form').hidden = true;
+    try { await Portal.signOutAdmin(); showAuth('You’re signed out.'); }
+    catch (error) { showAuth(error.message); }
+  }
+  $('#sign-out-button').addEventListener('click', adminSignOut);
+  $('#admin-verification-signout').addEventListener('click', adminSignOut);
+  $('#admin-send-code').addEventListener('click', async () => {
+    if (Date.now() < resendAt) return;
+    $('#admin-send-code').disabled = true;
+    $('#admin-verification-status').textContent = 'Sending your verification code…';
+    try {
+      const result = await Portal.adminAccess('send-code');
+      challengeId = result.challengeId;
+      startResendTimer(result.retryAfter);
+      $('#admin-code').value = '';
+      $('#admin-code-form').hidden = false;
+      $('#admin-code').focus();
+      $('#admin-verification-status').textContent = `Code sent to ${result.phoneMasked}. Never share it with anyone.`;
+    } catch (error) {
+      $('#admin-verification-status').textContent = error.message;
+      if (error.retryAfter) startResendTimer(error.retryAfter);
+      else $('#admin-send-code').disabled = false;
+    }
+  });
+  $('#admin-code-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const code = $('#admin-code').value.trim();
+    if (!challengeId || !/^\d{6}$/.test(code)) return $('#admin-verification-status').textContent = 'Enter the 6-digit code from your latest text.';
+    const button = event.currentTarget.querySelector('[type="submit"]'); button.disabled = true;
+    try {
+      await Portal.adminAccess('verify-code', { challengeId, code });
+      challengeId = ''; $('#admin-code').value = ''; $('#admin-code-form').hidden = true;
+      await initialize();
+    } catch (error) { $('#admin-verification-status').textContent = error.message; }
+    finally { button.disabled = false; }
+  });
   $('#refresh-revenue').addEventListener('click', loadPaymentStatus);
   $$('.nav-item').forEach((button) => button.addEventListener('click', () => setView(button.dataset.view)));
   $$('[data-view-jump]').forEach((button) => button.addEventListener('click', () => setView(button.dataset.viewJump)));
@@ -752,6 +892,7 @@
 
   const commandMenu = $('#command-menu');
   function toggleCommands(force) {
+    if (document.body.dataset.authState !== 'ready') return;
     commandMenu.hidden = typeof force === 'boolean' ? !force : !commandMenu.hidden;
     $('#command-button').setAttribute('aria-expanded', String(!commandMenu.hidden));
   }
@@ -768,6 +909,16 @@
     if (event.key === 'Escape' && !commandMenu.hidden) toggleCommands(false);
   });
 
-  Portal.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') showAuth(); });
+  Portal.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT') showAuth();
+    // Supabase holds its auth lock while callbacks run. Defer any auth/API work.
+    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') setTimeout(() => {
+      if (document.body.dataset.authState === 'ready') checkAdminAccess();
+      else initialize();
+    }, 0);
+  });
+  window.addEventListener('focus', checkAdminAccess);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkAdminAccess(); });
+  setInterval(() => { if (!document.hidden) checkAdminAccess(); }, 60_000);
   initialize();
 })();

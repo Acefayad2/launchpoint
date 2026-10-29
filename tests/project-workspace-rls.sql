@@ -30,6 +30,9 @@ insert into auth.users (id,email,aud,role,email_confirmed_at,created_at,updated_
   ('f1000000-0000-4000-8000-000000000002','lp-rls-client-a@example.invalid','authenticated','authenticated',now(),now(),now(),'{}','{}'),
   ('f1000000-0000-4000-8000-000000000003','lp-rls-client-b@example.invalid','authenticated','authenticated',now(),now(),now(),'{}','{}');
 insert into private.workspace_admins(email) values ('lp-rls-admin@example.invalid');
+insert into private.admin_memberships(user_id,sms_required) values ('f1000000-0000-4000-8000-000000000001',false);
+insert into auth.sessions(id,user_id,created_at,updated_at) values
+  ('f7000000-0000-4000-8000-000000000001','f1000000-0000-4000-8000-000000000001',now(),now());
 insert into public.clients(id,slug,business,contact_name,contact_email,project,status,next_step) values
   ('f2000000-0000-4000-8000-000000000001','lp-rls-client-a','RLS fixture A','Fixture A','lp-rls-client-a@example.invalid','RLS build A','active','Review fixture'),
   ('f2000000-0000-4000-8000-000000000002','lp-rls-client-b','RLS fixture B','Fixture B','lp-rls-client-b@example.invalid','RLS build B','active','Review fixture');
@@ -246,7 +249,7 @@ end $$;
 -- Authenticated admin may manage work, but cannot impersonate the billing server.
 set local request.jwt.claim.sub = 'f1000000-0000-4000-8000-000000000001';
 set local request.jwt.claim.email = 'lp-rls-admin@example.invalid';
-set local request.jwt.claims = '{"sub":"f1000000-0000-4000-8000-000000000001","email":"lp-rls-admin@example.invalid","role":"authenticated"}';
+set local request.jwt.claims = '{"sub":"f1000000-0000-4000-8000-000000000001","email":"lp-rls-admin@example.invalid","role":"authenticated","session_id":"f7000000-0000-4000-8000-000000000001"}';
 do $$ declare changed integer; begin
   if not private.is_workspace_admin() then raise exception 'Admin fixture not recognized'; end if;
   if (select count(*) from public.clients where id in ('f2000000-0000-4000-8000-000000000001','f2000000-0000-4000-8000-000000000002')) <> 2 then
