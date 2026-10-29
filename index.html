@@ -11,17 +11,23 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Orbitron:wght@500;600;700;800&family=Red+Hat+Display:wght@500;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/neural-theme.css?v=20261029-7">
+  <link rel="stylesheet" href="css/neural-theme.css?v=20261029-8">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
 
   <div class="launch-intro" id="launch-intro">
+    <div class="launch-intro-stage" aria-hidden="true">
+      <div class="launch-intro-glow"></div>
+      <div class="launch-intro-ship launch-intro-ship-left"><img src="assets/launchpoint-rocket.svg" alt=""><span class="launch-intro-flame"></span></div>
+      <div class="launch-intro-ship launch-intro-ship-center"><img src="assets/launchpoint-rocket.svg" alt=""><span class="launch-intro-flame"></span></div>
+      <div class="launch-intro-ship launch-intro-ship-right"><img src="assets/launchpoint-rocket.svg" alt=""><span class="launch-intro-flame"></span></div>
+      <div class="launch-intro-plume launch-intro-plume-left"></div>
+      <div class="launch-intro-plume launch-intro-plume-center"></div>
+      <div class="launch-intro-plume launch-intro-plume-right"></div>
+    </div>
     <div class="launch-intro-panel launch-intro-panel-left" aria-hidden="true"></div>
     <div class="launch-intro-panel launch-intro-panel-right" aria-hidden="true"></div>
-    <video class="launch-intro-video" id="launch-intro-video" muted playsinline preload="auto" poster="assets/launchpoint-rocket-hero.jpg" aria-hidden="true">
-      <source src="assets/launchpoint-rocket-launch.mp4" type="video/mp4">
-    </video>
     <button class="launch-intro-skip" id="launch-intro-skip" type="button">Skip intro</button>
   </div>
 
@@ -52,7 +58,7 @@
 
   <main id="main-content">
   <section class="hero hero-template" aria-labelledby="hero-title">
-    <img class="hero-still" src="assets/launchpoint-rocket-hero.jpg" alt="" aria-hidden="true" fetchpriority="high">
+    <img class="hero-still" src="assets/template-hero-texture.png" alt="" aria-hidden="true" fetchpriority="high">
     <div class="hero-vignette" aria-hidden="true"></div>
     <div class="hero-content">
       <h1 class="hero-h1" id="hero-title">LaunchPoint</h1>
@@ -291,6 +297,6 @@
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/launch-intro.js?v=20261029-2" defer></script>
+  <script src="js/launch-intro.js?v=20261029-3" defer></script>
 </body>
 </html>

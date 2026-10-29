@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 330" role="img" aria-label="Rocket">
+  <defs>
+    <linearGradient id="hull" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#64707a"/>
+      <stop offset=".2" stop-color="#f1f0e9"/>
+      <stop offset=".52" stop-color="#bfc6c9"/>
+      <stop offset=".77" stop-color="#f6f3e9"/>
+      <stop offset="1" stop-color="#5e6871"/>
+    </linearGradient>
+    <linearGradient id="nose" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#faf7ef"/>
+      <stop offset="1" stop-color="#89939d"/>
+    </linearGradient>
+    <linearGradient id="fin" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#cf553d"/>
+      <stop offset="1" stop-color="#742c29"/>
+    </linearGradient>
+  </defs>
+  <path d="M40 67C44 38 51 17 60 5c9 12 16 33 20 62v206H40Z" fill="url(#hull)" stroke="#f7f5ed" stroke-opacity=".45"/>
+  <path d="M40 67C44 38 51 17 60 5c9 12 16 33 20 62Z" fill="url(#nose)"/>
+  <path d="M40 72h40v15H40Z" fill="#263039"/>
+  <path d="M40 94h40v5H40Z" fill="#e46a48"/>
+  <path d="M40 253 14 293v25l26-19Z" fill="url(#fin)"/>
+  <path d="m80 253 26 40v25l-26-19Z" fill="url(#fin)"/>
+  <path d="M42 273h36v27H42Z" fill="#39434b"/>
+  <path d="M49 300h22v18H49Z" fill="#1c242b"/>
+  <path d="M49 300h22" stroke="#f1a27e" stroke-width="2"/>
+  <path d="M55 116h10v103H55Z" fill="#8c969b" opacity=".42"/>
+  <path d="M43 231h34" stroke="#56616a" stroke-width="3"/>
+  <path d="M43 245h34" stroke="#56616a" stroke-width="3"/>
+</svg>
