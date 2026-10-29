@@ -252,7 +252,8 @@
 
   $('#setup-invite-form').addEventListener('submit', async (event) => {
     event.preventDefault();
-    const button = event.currentTarget.querySelector('[type="submit"]');
+    const form = event.currentTarget;
+    const button = form.querySelector('[type="submit"]');
     if (button.disabled) return;
     const name = $('#invite-name').value.trim();
     const rawPhone = $('#invite-phone').value.trim();
@@ -269,7 +270,7 @@
       if (!currentSession || !status.isAdmin || !status.verified) throw new Error('Sign in and complete verification before inviting an administrator.');
       const result = await Portal.adminAccess('invite-create', { name, phone, ...($('#invite-current-account').checked ? { existingUserId: currentSession.user.id } : {}) });
       $('#setup-invite-status').textContent = `Quo accepted the setup text for ${result.phoneMasked}. Delivery can take a moment. The private link expires ${new Date(result.expiresAt).toLocaleString()}.`;
-      event.currentTarget.reset();
+      form.reset();
     } catch (error) { $('#setup-invite-status').textContent = error.message; }
     finally { button.disabled = false; }
   });
