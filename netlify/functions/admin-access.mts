@@ -6,6 +6,7 @@ const MAX_BODY_BYTES = 12 * 1024;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PHONE = /^\+[1-9]\d{7,14}$/;
 const INVITE_TOKEN = /^[A-Za-z0-9_-]{43}$/;
+const INVITE_COOKIE = '__Host-launchpoint-admin-invite';
 const UNAVAILABLE = 'Secure sign-in is temporarily unavailable. Please try again shortly.';
 type Context = { ip?: string };
 type Identity = { userId: string; sessionId: string; emailConfirmed: boolean };
@@ -113,6 +114,16 @@ function inviteHash(token: unknown) {
   return createHash('sha256').update(token).digest('hex');
 }
 
+function savedInvite(request: Request) {
+  const matches = (request.headers.get('cookie') || '').split(';').map(part => part.trim()).filter(part => part.startsWith(`${INVITE_COOKIE}=`));
+  return matches.length === 1 ? matches[0].slice(INVITE_COOKIE.length + 1) : undefined;
+}
+
+function withInviteCookie(response: Response, token = '', maxAge = 0) {
+  response.headers.set('set-cookie', `${INVITE_COOKIE}=${token}; Path=/; Max-Age=${maxAge}; Secure; HttpOnly; SameSite=Lax`);
+  return response;
+}
+
 function codeHash(env: Settings, challengeId: string, who: Identity, code: string) {
   return createHmac('sha256', env.secret).update(`${challengeId}:${who.userId}:${who.sessionId}:${code}`).digest('hex');
 }
@@ -169,9 +180,17 @@ export default async (request: Request, context: Context = {}) => {
     if (!actions.includes(payload.action)) return json({ error: 'Choose a valid action.' }, 400);
     const env = settings();
     if (payload.action === 'invite-info') {
-      const result = await rpc(env, 'admin_auth_invite_info', { p_token_hash: inviteHash(payload.inviteToken) });
+      const token = payload.inviteToken ?? savedInvite(request);
+      let result;
+      try { result = await rpc(env, 'admin_auth_invite_info', { p_token_hash: inviteHash(token) }); }
+      catch (error) {
+        if (error instanceof Response && error.status === 404 && payload.inviteToken == null) return withInviteCookie(error);
+        throw error;
+      }
       if (typeof result.name !== 'string' || typeof result.phoneMasked !== 'string' || typeof result.expiresAt !== 'string') return json({ error: UNAVAILABLE }, 503);
-      return json({ name: result.name, phoneMasked: result.phoneMasked, existingAccount: !!result.existingUserId, expiresAt: result.expiresAt });
+      const maxAge = Math.min(172800, Math.floor((Date.parse(result.expiresAt) - Date.now()) / 1000));
+      if (!Number.isFinite(maxAge) || maxAge <= 0) return withInviteCookie(rpcError({ error: 'invalid_invite' }));
+      return withInviteCookie(json({ name: result.name, phoneMasked: result.phoneMasked, existingAccount: !!result.existingUserId, expiresAt: result.expiresAt }), token, maxAge);
     }
 
     const who = await identity(request, env);
@@ -189,10 +208,12 @@ export default async (request: Request, context: Context = {}) => {
       if (typeof payload.challengeId !== 'string' || !UUID.test(payload.challengeId) || typeof payload.code !== 'string' || !/^\d{6}$/.test(payload.code)) return json({ error: 'Enter the six-digit code from your text.' }, 400);
       const result = await rpc(env, 'admin_auth_verify_code', { ...actor, p_challenge_id: payload.challengeId, p_code_hash: codeHash(env, payload.challengeId, who, payload.code) });
       if (result.verified !== true || typeof result.expiresAt !== 'string') return json({ error: UNAVAILABLE }, 503);
-      return json({ verified: true, expiresAt: result.expiresAt });
+      return withInviteCookie(json({ verified: true, expiresAt: result.expiresAt }));
     }
     if (payload.action === 'send-code') {
-      const tokenHash = payload.inviteToken == null ? null : inviteHash(payload.inviteToken);
+      // Normal sign-in must not silently enroll using another tab's invitation.
+      const tokenHash = payload.inviteToken != null ? inviteHash(payload.inviteToken)
+        : payload.resumeInvite === true ? inviteHash(savedInvite(request)) : null;
       if (tokenHash && !who.emailConfirmed) return json({ error: 'Confirm your email address before continuing.' }, 403);
       const quo = quoSettings();
       const challengeId = randomUUID();

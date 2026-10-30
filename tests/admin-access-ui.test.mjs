@@ -57,7 +57,10 @@ async function harness({ dashboard = false, session = signedIn(), status = verif
       calls.push({ action, data });
       if (api) { const result = await api(action, data, state); if (result !== undefined) return result; }
       if (action === 'status') return state.status;
-      if (action === 'invite-info') return invite;
+      if (action === 'invite-info') {
+        if (data.inviteToken) return invite;
+        throw Object.assign(new Error('Invalid invitation'), { status: 404 });
+      }
       if (action === 'send-code') return { challengeId: 'challenge-test', phoneMasked: '••• ••• 0124', retryAfter: 60, expiresIn: 300 };
       if (action === 'verify-code') { state.status = verified(); return { verified: true, expiresAt: state.status.expiresAt }; }
       if (action === 'invite-create') return { sent: true, deliveryStatus: 'accepted', phoneMasked: '••• ••• 0124', expiresAt: new Date(Date.now() + 86400000).toISOString() };
@@ -96,6 +99,27 @@ async function harness({ dashboard = false, session = signedIn(), status = verif
   const emit = async (selector, event, extra = {}) => { await get(selector).events[event]?.({ preventDefault() {}, currentTarget: get(selector), ...extra }); await settle(); };
   return { get, calls, state, storage, urls, events, timers, intervals, sandbox, emit, authEvent: event => callback(event) };
 }
+
+test('email confirmation in a fresh tab resumes saved invitation but still requires phone verification', async () => {
+  const ui = await harness({ status: { isAdmin: false, verified: false }, api: action => action === 'invite-info' ? { name: 'Invited admin', phoneMasked: '••• ••• 0124', existingAccount: false } : undefined });
+  assert.equal(ui.storage.size, 0);
+  assert.equal(ui.get('#setup-verify').hidden, false);
+  assert.equal(ui.get('#setup-dashboard-link').hidden, true);
+  assert.equal(ui.get('#setup-security').hidden, true);
+  assert.equal(ui.calls.some(call => call.action === 'send-code'), false);
+  await ui.emit('#setup-send-code', 'click');
+  assert.equal(ui.calls.find(call => call.action === 'send-code').data.resumeInvite, true);
+});
+
+test('anonymous fresh tab with saved invitation can create an account', async () => {
+  const ui = await harness({ session: null, api: action => action === 'invite-info' ? { name: 'Invited admin', existingAccount: false } : undefined });
+  assert.equal(ui.get('#setup-auth-submit').textContent, 'Create account');
+  ui.get('#setup-email').value = 'new@example.com';
+  ui.get('#setup-password').value = ui.get('#setup-password-confirm').value = 'private-password-123';
+  await ui.emit('#setup-auth-form', 'submit');
+  assert.equal(ui.calls.some(call => call.action === 'signup'), true);
+  assert.equal(ui.get('#setup-email-pending').hidden, false);
+});
 
 test('setup strips only invitation fragment and keeps Supabase auth parameters', async () => {
   const ui = await harness({ session: null, hash: '#invite=opaque-invite&access_token=auth-token&type=signup' });

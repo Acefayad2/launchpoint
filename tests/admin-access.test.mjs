@@ -80,6 +80,57 @@ function mockProviders(t, options = {}) {
   };
 }
 
+test('invitation survives a fresh tab through a secure cookie without exposing its token in JSON', async (t) => {
+  const mock = mockProviders(t);
+  const first = await adminAccess(request({ action: 'invite-info', inviteToken: token }));
+  const cookie = first.headers.get('set-cookie');
+  assert.match(cookie, /; Path=\/; Max-Age=\d+; Secure; HttpOnly; SameSite=Lax$/);
+  assert.ok(Number(cookie.match(/Max-Age=(\d+)/)[1]) <= 28800);
+  assert.doesNotMatch(await first.text(), new RegExp(token));
+  const headers = { cookie: cookie.split(';')[0] };
+  assert.equal((await adminAccess(request({ action: 'invite-info' }, headers))).status, 200);
+  assert.equal((await adminAccess(request({ action: 'send-code', resumeInvite: true }, headers), context)).status, 200);
+  assert.equal(mock.rpcCalls('admin_auth_begin_challenge')[0].body.p_invite_hash, createHash('sha256').update(token).digest('hex'));
+  await adminAccess(request({ action: 'send-code' }, headers), context);
+  assert.equal(mock.rpcCalls('admin_auth_begin_challenge')[1].body.p_invite_hash, null);
+  const verified = await adminAccess(request({ action: 'verify-code', challengeId, code: '123456' }, headers));
+  assert.match(verified.headers.get('set-cookie'), /Max-Age=0;/);
+});
+
+test('missing and revoked saved invitations fail closed and clear cookie', async (t) => {
+  const mock = mockProviders(t, { rpc: { admin_auth_invite_info: { ok: false, error: 'invalid_invite' } } });
+  for (const cookie of ['', `__Host-launchpoint-admin-invite=${token}`]) {
+    const response = await adminAccess(request({ action: 'invite-info' }, { cookie }));
+    assert.equal(response.status, 404);
+    assert.match(response.headers.get('set-cookie'), /Max-Age=0;/);
+  }
+  assert.equal((await adminAccess(request({ action: 'send-code', resumeInvite: true }), context)).status, 404);
+  assert.equal(mock.quoCalls().length, 0);
+});
+
+test('saved invitation still requires confirmed email before requesting a phone code', async (t) => {
+  const mock = mockProviders(t, { user: { id: userId, email: 'new@example.test', email_confirmed_at: null } });
+  const response = await adminAccess(request({ action: 'send-code', resumeInvite: true }, { cookie: `__Host-launchpoint-admin-invite=${token}` }), context);
+  assert.equal(response.status, 403);
+  assert.equal(mock.quoCalls().length, 0);
+});
+
+test('an explicit new invitation supersedes a saved invitation without extending its lifetime', async (t) => {
+  const mock = mockProviders(t);
+  const other = Buffer.alloc(32, 8).toString('base64url');
+  const response = await adminAccess(request({ action: 'invite-info', inviteToken: token }, { cookie: `__Host-launchpoint-admin-invite=${other}` }));
+  assert.equal(response.status, 200);
+  assert.equal(mock.rpcCalls('admin_auth_invite_info')[0].body.p_token_hash, createHash('sha256').update(token).digest('hex'));
+  assert.ok(response.headers.get('set-cookie').startsWith(`__Host-launchpoint-admin-invite=${token};`));
+});
+
+test('expired server invitation metadata cannot create a saved invitation', async (t) => {
+  mockProviders(t, { rpc: { admin_auth_invite_info: { ok: true, name: 'Admin', phoneMasked: '••• ••• 4321', expiresAt: new Date(Date.now() - 1000).toISOString() } } });
+  const response = await adminAccess(request({ action: 'invite-info', inviteToken: token }));
+  assert.equal(response.status, 404);
+  assert.match(response.headers.get('set-cookie'), /Max-Age=0;/);
+});
+
 test('admin route is POST-only, same-origin, JSON-only and no-store without CORS', async (t) => {
   const mock = mockProviders(t);
   assert.equal(config.path, '/api/admin-access'); assert.deepEqual(config.method, ['POST']);

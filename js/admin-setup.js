@@ -110,15 +110,17 @@
       if (access?.isAdmin && access.verified && !inviteToken) {
         scheduleExpiry(access); showSecurity(access); notice(); return;
       }
-      if (inviteToken) {
-        try { invite = await Portal.adminAccess('invite-info', { inviteToken }); }
+      {
+        const hadInvitation = Boolean(inviteToken || invite);
+        // The HttpOnly cookie survives email confirmation opening a fresh tab.
+        try { invite = await Portal.adminAccess('invite-info', inviteToken ? { inviteToken } : {}); }
         catch (error) {
           if (error.status !== 404) throw error;
           if (access?.isAdmin && access.verified && access.requiresVerification === true) {
             clearInvite(); scheduleExpiry(access); showSecurity(access); notice(); return;
           }
           clearInvite();
-          recoveryNotice = 'That setup link has expired or was canceled. Sign in below, or ask a LaunchPoint administrator to text you a fresh invitation.';
+          if (hadInvitation) recoveryNotice = 'That setup link has expired or was canceled. Sign in below, or ask a LaunchPoint administrator to text you a fresh invitation.';
           if (access?.isAdmin && access.verified) { scheduleExpiry(access); showSecurity(access); notice(recoveryNotice); return; }
         }
         if (revision !== epoch) return;
@@ -137,10 +139,10 @@
         if (pendingEmail && invite) { showEmailPending(pendingEmail); notice('Email confirmation is next. Your setup invitation is still saved in this tab.'); return; }
         $('#setup-auth').hidden = false;
         if (!modeInitialized) setMode(invite && !invite.existingAccount ? 'signup' : 'signin');
-        notice(recoveryNotice || (inviteToken ? '' : 'Sign in to manage your account. New administrators need the private setup link sent to their phone.'));
+        notice(recoveryNotice || (invite ? '' : 'Sign in to manage your account. New administrators need the private setup link sent to their phone.'));
         return;
       }
-      if (!inviteToken && !access?.isAdmin) {
+      if (!invite && !access?.isAdmin) {
         notice(recoveryNotice || 'This account does not have admin access. Reopen your original setup text in this browser, or ask an administrator for a new invitation.');
         return;
       }
@@ -167,7 +169,7 @@
     let ready = false;
     try {
       if (mode === 'signup') {
-        if (!inviteToken || invite?.existingAccount) throw new Error('A valid new-admin invitation is required to create an account here.');
+        if (!invite || invite.existingAccount) throw new Error('A valid new-admin invitation is required to create an account here.');
         const { data, error } = await Portal.db.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo } });
         if (error) throw error;
         ready = Boolean(data.session);
@@ -244,7 +246,7 @@
     $('#setup-send-code').disabled = true; operationInFlight = true;
     notice('Sending your private verification code…');
     try {
-      const result = await Portal.adminAccess('send-code', inviteToken ? { inviteToken } : {});
+      const result = await Portal.adminAccess('send-code', inviteToken ? { inviteToken } : invite ? { resumeInvite: true } : {});
       challengeId = result.challengeId; startResendTimer(result.retryAfter);
       $('#setup-code').value = ''; $('#setup-code-form').hidden = false; $('#setup-code').focus();
       notice(`Code sent to ${result.phoneMasked}. Enter it below within 5 minutes.`);
